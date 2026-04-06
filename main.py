@@ -159,8 +159,8 @@ def _worker_cycle() -> None:
         was_new = db.insert_article(article)
         if was_new:
             new_count += 1
-            # Only alert for tier 1 & 2 articles
-            if article.get("tier", 2) <= 2:
+            # Only alert for tier 1 (high priority) articles
+            if article.get("tier", 2) == 1:
                 to_alert.append(article)
 
     log.info("Stored %d new articles (%d already existed)", new_count, len(relevant) - new_count)
