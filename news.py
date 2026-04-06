@@ -7,7 +7,7 @@ import re
 import os
 import html
 import logging
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from typing import Optional
 
 import feedparser
@@ -284,8 +284,21 @@ def detect_sentiment(article: dict) -> str:
 
 def filter_and_enrich(articles: list[dict]) -> list[dict]:
     """Score, filter, classify and enrich articles. Returns relevant ones."""
+    cutoff = datetime.now(timezone.utc) - timedelta(days=7)
     relevant: list[dict] = []
     for article in articles:
+        # Skip articles published more than 7 days ago
+        pub_at = article.get("published_at", "")
+        if pub_at:
+            try:
+                dt = datetime.fromisoformat(pub_at)
+                if dt.tzinfo is None:
+                    dt = dt.replace(tzinfo=timezone.utc)
+                if dt < cutoff:
+                    continue
+            except Exception:
+                pass  # unparseable date — keep the article
+
         score, matched = score_article(article)
         if score < MIN_RELEVANCE_SCORE:
             continue
