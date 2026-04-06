@@ -188,6 +188,22 @@ def background_worker() -> None:
 _worker_started = False
 
 
+def _backfill_topics() -> None:
+    """Assign topics to existing articles that have an empty topic field."""
+    with db.get_connection() as conn:
+        rows = conn.execute(
+            "SELECT id, title, summary FROM articles WHERE topic = '' OR topic IS NULL"
+        ).fetchall()
+        if not rows:
+            return
+        updates = []
+        for row in rows:
+            topic = news.detect_topic([], row["title"], row["summary"] or "")
+            updates.append((topic, row["id"]))
+        conn.executemany("UPDATE articles SET topic = ? WHERE id = ?", updates)
+    log.info("Backfilled topics for %d articles", len(updates))
+
+
 def _ensure_started():
     """Initialise DB and start background worker (once)."""
     global _worker_started
@@ -196,6 +212,7 @@ def _ensure_started():
     _worker_started = True
 
     db.init_db()
+    _backfill_topics()
 
     log.info("=" * 60)
     log.info("⚡ Energy News Tracker")

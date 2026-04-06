@@ -29,7 +29,6 @@ RSS_FEEDS: list[dict] = [
     {"name": "NOS Economie", "url": "https://feeds.nos.nl/nosnieuwseconomie", "tier": 2, "region": "NL"},
     {"name": "NU.nl Economie", "url": "https://www.nu.nl/rss/Economie", "tier": 2, "region": "NL"},
     {"name": "Rijksoverheid Nieuws", "url": "https://feeds.rijksoverheid.nl/nieuws.rss", "tier": 2, "region": "NL"},
-    {"name": "Duurzaam Nieuws", "url": "https://www.duurzaamnieuws.nl/feed/", "tier": 2, "region": "NL"},
 
     # ── 🌍 INTERNATIONAAL — Tier 1 ──
     {"name": "PV Magazine", "url": "https://www.pv-magazine.com/feed/", "tier": 1, "region": "INT"},
@@ -46,7 +45,6 @@ RSS_FEEDS: list[dict] = [
 
 
     # ── 🌍 INTERNATIONAAL — Tier 3 ──
-    {"name": "MIT Energy Initiative", "url": "https://energy.mit.edu/feed/", "tier": 3, "region": "INT"},
     {"name": "EIA Today in Energy", "url": "https://www.eia.gov/rss/todayinenergy.xml", "tier": 3, "region": "INT"},
     {"name": "Carbon Brief", "url": "https://www.carbonbrief.org/feed", "tier": 3, "region": "INT"},
 ]
