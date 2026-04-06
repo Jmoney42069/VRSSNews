@@ -33,6 +33,9 @@ log = logging.getLogger("energy-tracker")
 
 POLL_INTERVAL = int(os.getenv("POLL_INTERVAL", "300"))
 
+# Last successful poll timestamp (updated by background worker)
+_last_poll_at: datetime | None = None
+
 # ---------------------------------------------------------------------------
 # Flask application
 # ---------------------------------------------------------------------------
@@ -104,10 +107,21 @@ def index():
         all_topics=news.ALL_TOPICS,
         sources=sources,
         total_feeds=len(news.RSS_FEEDS),
-        last_updated=datetime.now(timezone.utc).strftime("%H:%M UTC"),
+        last_updated=_last_poll_at.strftime("%H:%M UTC") if _last_poll_at else "nog niet",
         today_count=today_count,
         today_str=today_str,
     )
+
+
+@app.route("/api/status")
+def api_status():
+    """JSON endpoint: returns last poll time and article count."""
+    count = db.get_article_count()
+    return jsonify({
+        "last_poll_utc": _last_poll_at.strftime("%Y-%m-%dT%H:%M:%SZ") if _last_poll_at else None,
+        "article_count": count.get("total", 0),
+        "poll_interval_s": POLL_INTERVAL,
+    })
 
 
 @app.route("/api/articles")
@@ -165,6 +179,8 @@ def _worker_cycle() -> None:
     # 5. Cleanup old data
     db.cleanup_old_articles()
 
+    global _last_poll_at
+    _last_poll_at = datetime.now(timezone.utc)
     log.info("─── Poll cycle done ───")
 
 
