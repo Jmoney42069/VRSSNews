@@ -72,7 +72,7 @@ KEYWORDS: dict[str, int] = {
     "warmtepomp": 2,
     "installateur": 2,
     "installatiebranche": 3,
-    "verduurzaming": 2,
+    "verduurzam": 2,
     "thuisbatterij": 3,
     "batterij": 2,
     "netbeheer": 2,
@@ -119,7 +119,7 @@ NL_INDICATORS = {
     "onbalansmarkt", "onbalanshandel", "warmtepomp", "installateur",
     "energiebedrijf", "energiemaatschappij", "energierekening",
     "salderingsregeling", "teruglevering", "tennet", "netbeheer",
-    "installatiebranche", "verduurzaming", "distributeur",
+    "installatiebranche", "verduurzam", "distributeur",
     "belastingdienst", "afm", "acm", "milieu centraal",
 }
 
@@ -210,7 +210,7 @@ TOPICS: list[tuple[str, list[str]]] = [
     ("Energieprijzen",    ["energieprijs", "energierekening", "energy price", "energy bill", "dynamisch tarief", "dynamische tarieven", "stroomprijs", "gasprijs", "gas price", "electricity price"]),
     ("Onbalansmarkt",     ["onbalansmarkt", "onbalanshandel", "imbalance market", "flexibility", "smart grid", "vrm"]),
     ("Energiebeheer",     ["ems", "energy management system", "energy management"]),
-    ("Installatiebranche",["installateur", "installatiebranche", "distributeur", "verduurzaming"]),
+    ("Installatiebranche",["installateur", "installatiebranche", "distributeur", "verduurzam"]),
     ("Markt & Beleid",    ["subsidie", "beleid", "wet", "regelgeving", "renewable", "wind", "offshore", "geopolit", "tariff", "belastingdienst", "afm"]),
 ]
 
