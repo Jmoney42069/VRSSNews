@@ -117,10 +117,14 @@ def index():
 
 @app.route("/api/status")
 def api_status():
-    """JSON endpoint: returns last poll time and article count."""
+    """JSON endpoint: returns last poll time, article count, and worker health."""
     count = db.get_article_count()
+    now = datetime.now(timezone.utc)
+    seconds_since_poll = (now - _last_poll_at).total_seconds() if _last_poll_at else None
     return jsonify({
         "last_poll_utc": _last_poll_at.strftime("%Y-%m-%dT%H:%M:%SZ") if _last_poll_at else None,
+        "seconds_since_last_poll": round(seconds_since_poll) if seconds_since_poll is not None else None,
+        "worker_healthy": seconds_since_poll is not None and seconds_since_poll < POLL_INTERVAL * 3,
         "article_count": count.get("total", 0),
         "poll_interval_s": POLL_INTERVAL,
     })
