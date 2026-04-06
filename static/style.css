@@ -638,6 +638,22 @@ button, input, select, textarea {
     font-weight: 500;
 }
 
+.today-text { color: #22c55e; }
+
+.new-badge {
+    font-size: 0.58rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #22c55e;
+    background: rgba(34, 197, 94, 0.12);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+    padding: 3px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
 .tag-topic {
     background: rgba(6, 182, 212, 0.10);
     color: var(--accent);

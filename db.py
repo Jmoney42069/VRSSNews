@@ -169,6 +169,17 @@ def get_recent_articles(
         return [dict(r) for r in rows]
 
 
+def get_today_count() -> int:
+    """Return the number of articles stored today."""
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    with get_connection() as conn:
+        row = conn.execute(
+            "SELECT COUNT(*) as cnt FROM articles WHERE created_at LIKE ?",
+            (f"{today}%",),
+        ).fetchone()
+        return row["cnt"] if row else 0
+
+
 def get_topic_counts() -> dict:
     """Return article counts per topic for the last 7 days."""
     cutoff = (datetime.now(timezone.utc) - timedelta(days=RETENTION_DAYS)).isoformat()

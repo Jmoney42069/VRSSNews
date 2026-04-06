@@ -30,9 +30,6 @@ RSS_FEEDS: list[dict] = [
     {"name": "NU.nl Economie", "url": "https://www.nu.nl/rss/Economie", "tier": 2, "region": "NL"},
     {"name": "Rijksoverheid Nieuws", "url": "https://feeds.rijksoverheid.nl/nieuws.rss", "tier": 2, "region": "NL"},
     {"name": "Duurzaam Nieuws", "url": "https://www.duurzaamnieuws.nl/feed/", "tier": 2, "region": "NL"},
-    {"name": "Milieu Centraal", "url": "https://www.milieucentraal.nl/rss.xml", "tier": 2, "region": "NL"},
-    {"name": "Belastingdienst", "url": "https://www.belastingdienst.nl/wps/wcm/connect/bldcontentnl/belastingdienst/rss/nieuws.rss", "tier": 2, "region": "NL"},
-    {"name": "AFM", "url": "https://www.afm.nl/nl-nl/nieuws/rss", "tier": 2, "region": "NL"},
 
     # ── 🌍 INTERNATIONAAL — Tier 1 ──
     {"name": "PV Magazine", "url": "https://www.pv-magazine.com/feed/", "tier": 1, "region": "INT"},

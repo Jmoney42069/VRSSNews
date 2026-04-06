@@ -86,6 +86,8 @@ def index():
 
     counts = db.get_article_count()
     topic_counts = db.get_topic_counts()
+    today_count = db.get_today_count()
+    today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
     # Collect unique active sources
     sources = sorted({a["source"] for a in articles if a.get("source")})
@@ -103,6 +105,8 @@ def index():
         sources=sources,
         total_feeds=len(news.RSS_FEEDS),
         last_updated=datetime.now(timezone.utc).strftime("%H:%M UTC"),
+        today_count=today_count,
+        today_str=today_str,
     )
 
 
