@@ -2,6 +2,12 @@
    Voltera News Tracker — Professional Dashboard Styles
    ═══════════════════════════════════════════════════════════ */
 
+/* iOS Safari: use dynamic viewport height when supported */
+@supports (height: 100dvh) {
+    body { min-height: 100dvh; }
+    .sidebar { height: 100dvh; }
+}
+
 :root {
     --bg:           #0c0e14;
     --bg-alt:       #10131b;
@@ -52,10 +58,24 @@ body {
     line-height: 1.6;
     display: flex;
     min-height: 100vh;
+    min-height: -webkit-fill-available;
     overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    /* Prevent iOS text size adjustment on rotate */
+    -webkit-text-size-adjust: 100%;
 }
 
-a { color: inherit; text-decoration: none; }
+a {
+    color: inherit;
+    text-decoration: none;
+    /* Remove grey tap flash on iOS */
+    -webkit-tap-highlight-color: transparent;
+}
+
+button, input, select, textarea {
+    -webkit-tap-highlight-color: transparent;
+}
 
 /* ═══════════════════════════════════════════════════════════
    SIDEBAR
@@ -67,12 +87,18 @@ a { color: inherit; text-decoration: none; }
     left: 0;
     width: var(--sidebar-w);
     height: 100vh;
+    height: -webkit-fill-available;
     background: var(--surface);
     border-right: 1px solid var(--border);
     display: flex;
     flex-direction: column;
     z-index: 100;
     overflow-y: auto;
+    /* Smooth momentum scroll on iOS */
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    /* Account for iPhone notch on left when in landscape */
+    padding-left: env(safe-area-inset-left);
 }
 
 /* Brand */
@@ -142,6 +168,9 @@ a { color: inherit; text-decoration: none; }
     color: var(--text-secondary);
     transition: all var(--transition);
     margin-bottom: 2px;
+    /* iOS: minimum 44px touch target */
+    min-height: 44px;
+    touch-action: manipulation;
 }
 
 .nav-item:hover {
@@ -243,9 +272,11 @@ a { color: inherit; text-decoration: none; }
 .topbar {
     position: sticky;
     top: 0;
+    /* iOS: push below status bar / notch */
+    top: env(safe-area-inset-top);
     z-index: 50;
     height: var(--topbar-h);
-    background: rgba(12, 14, 20, 0.85);
+    background: rgba(12, 14, 20, 0.92);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     border-bottom: 1px solid var(--border);
@@ -261,7 +292,12 @@ a { color: inherit; text-decoration: none; }
     border: none;
     color: var(--text);
     cursor: pointer;
-    padding: 6px;
+    padding: 10px;
+    min-width: 44px;
+    min-height: 44px;
+    align-items: center;
+    justify-content: center;
+    touch-action: manipulation;
 }
 
 .search-form {
@@ -286,10 +322,14 @@ a { color: inherit; text-decoration: none; }
     border: 1px solid var(--border);
     background: var(--surface);
     color: var(--text);
-    font-size: 0.85rem;
+    /* iOS: min 16px prevents auto-zoom on focus */
+    font-size: max(16px, 0.85rem);
     font-family: inherit;
     outline: none;
     transition: all var(--transition);
+    /* Remove iOS default styling */
+    -webkit-appearance: none;
+    appearance: none;
 }
 
 .search-input::placeholder { color: var(--text-muted); }
@@ -653,6 +693,8 @@ a { color: inherit; text-decoration: none; }
     justify-content: center;
     gap: 6px;
     padding: 18px 28px;
+    /* iOS: add space above home indicator */
+    padding-bottom: max(18px, env(safe-area-inset-bottom));
     font-size: 0.72rem;
     color: var(--text-muted);
     border-top: 1px solid var(--border);
@@ -686,6 +728,13 @@ a { color: inherit; text-decoration: none; }
         display: block;
     }
 
+    /* Prevent body scroll when sidebar is open on iOS */
+    .sidebar-open body {
+        overflow: hidden;
+        position: fixed;
+        width: 100%;
+    }
+
     .main-wrapper {
         margin-left: 0;
     }
@@ -696,11 +745,14 @@ a { color: inherit; text-decoration: none; }
 
     .topbar {
         padding: 0 16px;
+        padding-right: max(16px, env(safe-area-inset-right));
     }
 
     .metrics-bar {
         grid-template-columns: repeat(2, 1fr);
         padding: 16px;
+        padding-left: max(16px, env(safe-area-inset-left));
+        padding-right: max(16px, env(safe-area-inset-right));
         gap: 10px;
     }
 
@@ -714,6 +766,8 @@ a { color: inherit; text-decoration: none; }
 
     .content {
         padding: 16px;
+        padding-left: max(16px, env(safe-area-inset-left));
+        padding-right: max(16px, env(safe-area-inset-right));
     }
 
     .card-grid {
@@ -725,9 +779,19 @@ a { color: inherit; text-decoration: none; }
     }
 }
 
-@media (max-width: 480px) {
+/* iPhone SE / small screens */
+@media (max-width: 390px) {
     .metrics-bar {
         grid-template-columns: 1fr 1fr;
+        gap: 8px;
+    }
+
+    .metric-value {
+        font-size: 1.15rem;
+    }
+
+    .metric-label {
+        font-size: 0.64rem;
     }
 
     .search-form {
@@ -738,6 +802,36 @@ a { color: inherit; text-decoration: none; }
         flex-direction: column;
         align-items: flex-start;
         gap: 6px;
+    }
+
+    .card {
+        padding: 16px;
+    }
+
+    .card-title {
+        font-size: 0.9rem;
+    }
+
+    html { font-size: 14px; }
+}
+
+/* Landscape iPhone: keep sidebar usable */
+@media (max-height: 500px) and (orientation: landscape) {
+    .sidebar {
+        width: 220px;
+    }
+
+    .sidebar-brand {
+        padding: 14px 16px;
+    }
+
+    .topbar {
+        height: 50px;
+    }
+
+    .metrics-bar {
+        grid-template-columns: repeat(4, 1fr);
+        padding: 10px 16px;
     }
 }
 
