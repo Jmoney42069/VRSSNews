@@ -51,7 +51,8 @@ def init_db() -> None:
                 tier        INTEGER DEFAULT 2,
                 topic       TEXT    DEFAULT '',
                 alerted     INTEGER DEFAULT 0,
-                created_at  TEXT    NOT NULL
+                created_at  TEXT    NOT NULL,
+                published_at TEXT    DEFAULT ''
             )
         """)
         conn.execute("""
@@ -62,10 +63,15 @@ def init_db() -> None:
             CREATE INDEX IF NOT EXISTS idx_articles_category
             ON articles (category)
         """)
-        # Migration: add topic column to existing databases
+        # Migrations for existing databases
         try:
             conn.execute("ALTER TABLE articles ADD COLUMN topic TEXT DEFAULT ''")
             log.info("Migrated: added topic column to articles table")
+        except Exception:
+            pass  # column already exists
+        try:
+            conn.execute("ALTER TABLE articles ADD COLUMN published_at TEXT DEFAULT ''")
+            log.info("Migrated: added published_at column to articles table")
         except Exception:
             pass  # column already exists
     log.info("Database initialised at %s", DB_PATH)
@@ -95,8 +101,8 @@ def insert_article(article: dict) -> bool:
             conn.execute(
                 """INSERT INTO articles
                    (title, link, summary, source, category, score, keywords,
-                    sentiment, tier, topic, alerted, created_at)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?)""",
+                    sentiment, tier, topic, alerted, created_at, published_at)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?)""",
                 (
                     article["title"],
                     article["link"],
@@ -109,6 +115,7 @@ def insert_article(article: dict) -> bool:
                     article.get("tier", 2),
                     article.get("topic", ""),
                     now,
+                    article.get("published_at", ""),
                 ),
             )
         return True

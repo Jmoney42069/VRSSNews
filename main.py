@@ -84,7 +84,7 @@ def index():
 
     # Add time-ago to each
     for a in articles:
-        a["time_ago"] = _time_ago(a["created_at"])
+        a["time_ago"] = _time_ago(a.get("published_at") or a["created_at"])
 
     counts = db.get_article_count()
     topic_counts = db.get_topic_counts()
@@ -133,7 +133,7 @@ def api_articles():
         search=search or None,
     )
     for a in articles:
-        a["time_ago"] = _time_ago(a["created_at"])
+        a["time_ago"] = _time_ago(a.get("published_at") or a["created_at"])
     return jsonify(articles)
 
 

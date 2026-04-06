@@ -7,6 +7,7 @@ import re
 import os
 import html
 import logging
+from datetime import datetime, timezone
 from typing import Optional
 
 import feedparser
@@ -168,12 +169,28 @@ def fetch_feed(feed_cfg: dict) -> list[dict]:
             if not title or not link:
                 continue
 
+            # Parse publication date to ISO string
+            published_at = ""
+            if published:
+                try:
+                    # feedparser stores parsed time as published_parsed (time.struct_time UTC)
+                    pt = entry.get("published_parsed") or entry.get("updated_parsed")
+                    if pt:
+                        published_at = datetime(
+                            pt.tm_year, pt.tm_mon, pt.tm_mday,
+                            pt.tm_hour, pt.tm_min, pt.tm_sec,
+                            tzinfo=timezone.utc
+                        ).isoformat()
+                except Exception:
+                    pass
+
             articles.append({
                 "source": name,
                 "title": title,
                 "link": link,
                 "summary": summary,
                 "published": published,
+                "published_at": published_at,
                 "tier": tier,
                 "region": region,
             })
