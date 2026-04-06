@@ -1,0 +1,7 @@
+.env
+venv/
+__pycache__/
+*.pyc
+seen_articles.json
+last_check.json
+energy_news.db

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚡ Energy News Tracker</title>
+    <meta http-equiv="refresh" content="60">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <header>
+        <h1>⚡ Energy News Tracker</h1>
+        <p class="subtitle">Real-time energy news monitoring dashboard</p>
+        <div class="stats">
+            <span class="badge">Total: {{ counts.get('total', 0) }}</span>
+            <span class="badge nl">🇳🇱 NL: {{ counts.get('NL', 0) }}</span>
+            <span class="badge int">🌍 INT: {{ counts.get('INT', 0) }}</span>
+        </div>
+    </header>
+
+    <nav class="controls">
+        <form method="get" action="/" class="search-form">
+            <input
+                type="text"
+                name="q"
+                placeholder="Search articles..."
+                value="{{ search }}"
+                class="search-input"
+            >
+            <button type="submit" class="btn">Search</button>
+            {% if search %}
+                <a href="/" class="btn btn-clear">Clear</a>
+            {% endif %}
+        </form>
+        <div class="filters">
+            <a href="/" class="btn {% if not cat_filter %}active{% endif %}">All</a>
+            <a href="/?cat=NL{% if search %}&q={{ search }}{% endif %}" class="btn {% if cat_filter == 'NL' %}active{% endif %}">🇳🇱 NL</a>
+            <a href="/?cat=INT{% if search %}&q={{ search }}{% endif %}" class="btn {% if cat_filter == 'INT' %}active{% endif %}">🌍 International</a>
+        </div>
+    </nav>
+
+    <main>
+        {% if not cat_filter or cat_filter == 'NL' %}
+        <section class="feed-section">
+            <h2>🇳🇱 Netherlands</h2>
+            {% if nl_articles %}
+                <div class="card-grid">
+                {% for a in nl_articles %}
+                    <article class="card tier-{{ a.tier }}">
+                        <div class="card-header">
+                            <span class="source">{{ a.source }}</span>
+                            <span class="time">{{ a.time_ago }}</span>
+                        </div>
+                        <h3><a href="{{ a.link }}" target="_blank" rel="noopener">{{ a.title }}</a></h3>
+                        <p class="summary">{{ a.summary[:250] }}{% if a.summary|length > 250 %}…{% endif %}</p>
+                        <div class="card-footer">
+                            <span class="score" title="Relevance score">Score: {{ a.score }}</span>
+                            <span class="sentiment">{{ a.sentiment }}</span>
+                            {% if a.keywords %}
+                                <span class="keywords" title="Matched keywords">{{ a.keywords }}</span>
+                            {% endif %}
+                        </div>
+                    </article>
+                {% endfor %}
+                </div>
+            {% else %}
+                <p class="empty">No Dutch articles found.</p>
+            {% endif %}
+        </section>
+        {% endif %}
+
+        {% if not cat_filter or cat_filter == 'INT' %}
+        <section class="feed-section">
+            <h2>🌍 International</h2>
+            {% if int_articles %}
+                <div class="card-grid">
+                {% for a in int_articles %}
+                    <article class="card tier-{{ a.tier }}">
+                        <div class="card-header">
+                            <span class="source">{{ a.source }}</span>
+                            <span class="time">{{ a.time_ago }}</span>
+                        </div>
+                        <h3><a href="{{ a.link }}" target="_blank" rel="noopener">{{ a.title }}</a></h3>
+                        <p class="summary">{{ a.summary[:250] }}{% if a.summary|length > 250 %}…{% endif %}</p>
+                        <div class="card-footer">
+                            <span class="score" title="Relevance score">Score: {{ a.score }}</span>
+                            <span class="sentiment">{{ a.sentiment }}</span>
+                            {% if a.keywords %}
+                                <span class="keywords" title="Matched keywords">{{ a.keywords }}</span>
+                            {% endif %}
+                        </div>
+                    </article>
+                {% endfor %}
+                </div>
+            {% else %}
+                <p class="empty">No international articles found.</p>
+            {% endif %}
+        </section>
+        {% endif %}
+    </main>
+
+    <footer>
+        <p>Energy News Tracker — Polls every 5 minutes — Data retained 7 days</p>
+    </footer>
+</body>
+</html>

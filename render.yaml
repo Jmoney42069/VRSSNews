@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: energy-news-tracker
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn main:app --bind 0.0.0.0:$PORT --workers 1 --threads 2 --preload
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: POLL_INTERVAL
+        value: 300
+      - key: MAX_ALERTS_PER_HOUR
+        value: 20
+      - key: TELEGRAM_TOKEN
+        sync: false
+      - key: TELEGRAM_CHAT_ID
+        sync: false
+      - key: EMAIL_USER
+        sync: false
+      - key: EMAIL_PASS
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
