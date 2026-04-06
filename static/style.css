@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════
-   Voltera News Tracker — Professional Dashboard Styles
+   Voltera News Tracker — Enterprise Dashboard
    ═══════════════════════════════════════════════════════════ */
 
 /* iOS Safari: use dynamic viewport height when supported */
@@ -9,36 +9,40 @@
 }
 
 :root {
-    --bg:           #0c0e14;
-    --bg-alt:       #10131b;
-    --surface:      #161a25;
-    --surface-alt:  #1c2130;
-    --card:         #1a1f2e;
-    --card-hover:   #1f2538;
-    --border:       #252b3d;
-    --border-light: #2e3650;
+    --bg:           #060a0f;
+    --bg-alt:       #09101a;
+    --surface:      #0d1422;
+    --surface-alt:  #111c2e;
+    --card:         #0d1422;
+    --card-hover:   #111c2e;
+    --border:       #1a2540;
+    --border-light: #243355;
 
-    --text:         #e4e8f1;
-    --text-secondary: #9aa0b4;
-    --text-muted:   #636b82;
+    --text:           #dde4f0;
+    --text-secondary: #7d8fa8;
+    --text-muted:     #3d5068;
 
-    --accent:       #06b6d4;
-    --accent-dim:   rgba(6, 182, 212, 0.12);
-    --nl:           #ff6b35;
-    --nl-dim:       rgba(255, 107, 53, 0.10);
-    --int:          #3b82f6;
-    --int-dim:      rgba(59, 130, 246, 0.10);
-    --positive:     #22c55e;
-    --negative:     #ef4444;
-    --neutral:      #64748b;
+    --accent:        #06b6d4;
+    --accent-dim:    rgba(6, 182, 212, 0.10);
+    --accent-glow:   rgba(6, 182, 212, 0.22);
+    --nl:            #f97316;
+    --nl-dim:        rgba(249, 115, 22, 0.10);
+    --int:           #818cf8;
+    --int-dim:       rgba(129, 140, 248, 0.10);
+    --positive:      #22c55e;
+    --negative:      #f43f5e;
+    --neutral:       #64748b;
+    --priority:      #f59e0b;
 
-    --sidebar-w:    260px;
-    --topbar-h:     60px;
-    --radius:       8px;
-    --radius-lg:    12px;
-    --shadow:       0 1px 3px rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.2);
-    --shadow-lg:    0 4px 20px rgba(0,0,0,0.4);
-    --transition:   0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    --sidebar-w:    272px;
+    --topbar-h:     64px;
+    --radius:       6px;
+    --radius-lg:    10px;
+    --shadow:       0 2px 8px rgba(0,0,0,0.5);
+    --shadow-lg:    0 8px 32px rgba(0,0,0,0.6);
+    --transition:   0.16s cubic-bezier(0.4, 0, 0.2, 1);
+
+    --font-mono: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
 }
 
 /* ── Reset ── */
@@ -49,7 +53,7 @@
     box-sizing: border-box;
 }
 
-html { font-size: 15px; }
+html { font-size: 14px; }
 
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -62,14 +66,15 @@ body {
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    /* Prevent iOS text size adjustment on rotate */
     -webkit-text-size-adjust: 100%;
+    background-image: radial-gradient(circle, rgba(26, 37, 64, 0.6) 1px, transparent 1px);
+    background-size: 28px 28px;
+    background-attachment: fixed;
 }
 
 a {
     color: inherit;
     text-decoration: none;
-    /* Remove grey tap flash on iOS */
     -webkit-tap-highlight-color: transparent;
 }
 
@@ -94,10 +99,8 @@ button, input, select, textarea {
     flex-direction: column;
     z-index: 100;
     overflow-y: auto;
-    /* Smooth momentum scroll on iOS */
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
-    /* Account for iPhone notch on left when in landscape */
     padding-left: env(safe-area-inset-left);
 }
 
@@ -106,71 +109,90 @@ button, input, select, textarea {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 24px 20px 20px;
+    padding: 20px 20px 18px;
+    background: linear-gradient(135deg, var(--surface-alt) 0%, var(--surface) 100%);
     border-bottom: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+}
+
+.sidebar-brand::after {
+    content: '';
+    position: absolute;
+    top: -24px; right: -24px;
+    width: 80px; height: 80px;
+    background: var(--accent-glow);
+    border-radius: 50%;
+    filter: blur(28px);
+    pointer-events: none;
 }
 
 .brand-icon {
-    font-size: 1.6rem;
-    width: 40px;
-    height: 40px;
+    font-size: 1.2rem;
+    width: 36px;
+    height: 36px;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--accent-dim);
-    border-radius: var(--radius);
+    background: linear-gradient(135deg, var(--accent), #0891b2);
+    border-radius: 8px;
+    box-shadow: 0 0 16px var(--accent-glow);
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
 }
 
 .brand-text {
     display: flex;
     flex-direction: column;
     line-height: 1.2;
+    position: relative;
+    z-index: 1;
 }
 
 .brand-name {
-    font-weight: 700;
-    font-size: 1.05rem;
+    font-weight: 800;
+    font-size: 0.95rem;
     color: var(--text);
-    letter-spacing: -0.02em;
+    letter-spacing: -0.03em;
 }
 
 .brand-sub {
-    font-size: 0.7rem;
+    font-size: 0.62rem;
     color: var(--text-muted);
     text-transform: uppercase;
-    letter-spacing: 0.06em;
-    font-weight: 500;
+    letter-spacing: 0.12em;
+    font-weight: 700;
 }
 
 /* Navigation */
 .sidebar-nav {
-    padding: 16px 12px;
-    flex: 1;
+    padding: 12px 10px;
 }
 
 .nav-label {
-    font-size: 0.66rem;
-    font-weight: 600;
+    font-size: 0.6rem;
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.12em;
     color: var(--text-muted);
-    padding: 0 8px 8px;
+    padding: 8px 10px 6px;
 }
 
 .nav-item {
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 10px 12px;
+    padding: 9px 12px;
     border-radius: var(--radius);
-    font-size: 0.88rem;
+    font-size: 0.84rem;
     font-weight: 500;
     color: var(--text-secondary);
     transition: all var(--transition);
-    margin-bottom: 2px;
-    /* iOS: minimum 44px touch target */
+    margin-bottom: 1px;
     min-height: 44px;
     touch-action: manipulation;
+    position: relative;
 }
 
 .nav-item:hover {
@@ -184,6 +206,15 @@ button, input, select, textarea {
     font-weight: 600;
 }
 
+.nav-item.active::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 20%; bottom: 20%;
+    width: 2px;
+    background: var(--accent);
+    border-radius: 0 2px 2px 0;
+}
+
 .nav-icon {
     font-size: 1rem;
     width: 22px;
@@ -193,23 +224,29 @@ button, input, select, textarea {
 
 .nav-count {
     margin-left: auto;
-    font-size: 0.72rem;
-    font-weight: 600;
+    font-size: 0.68rem;
+    font-weight: 700;
+    font-family: var(--font-mono);
     background: var(--surface-alt);
-    padding: 2px 8px;
-    border-radius: 10px;
+    border: 1px solid var(--border);
+    padding: 1px 7px;
+    border-radius: 4px;
     color: var(--text-muted);
+    min-width: 26px;
+    text-align: center;
 }
 
 .nav-item.active .nav-count {
-    background: rgba(6, 182, 212, 0.2);
+    background: var(--accent-glow);
+    border-color: rgba(6, 182, 212, 0.3);
     color: var(--accent);
 }
 
 /* Sidebar stats */
 .sidebar-stats {
-    padding: 16px 20px 24px;
+    padding: 14px 20px 24px;
     border-top: 1px solid var(--border);
+    margin-top: auto;
 }
 
 .sidebar-stats .nav-label {
@@ -220,8 +257,8 @@ button, input, select, textarea {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 5px 0;
-    font-size: 0.78rem;
+    padding: 4px 0;
+    font-size: 0.74rem;
 }
 
 .stat-dot {
@@ -239,8 +276,8 @@ button, input, select, textarea {
 }
 
 @keyframes pulse-dot {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.4; }
+    0%, 100% { opacity: 1; box-shadow: 0 0 8px var(--positive); }
+    50% { opacity: 0.4; box-shadow: 0 0 3px var(--positive); }
 }
 
 .stat-row:first-child {
@@ -251,7 +288,12 @@ button, input, select, textarea {
 }
 
 .stat-label { color: var(--text-muted); }
-.stat-value { color: var(--text-secondary); font-weight: 500; }
+.stat-value {
+    color: var(--text-secondary);
+    font-weight: 600;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+}
 
 /* ═══════════════════════════════════════════════════════════
    MAIN WRAPPER
@@ -276,9 +318,9 @@ button, input, select, textarea {
     top: env(safe-area-inset-top);
     z-index: 50;
     height: var(--topbar-h);
-    background: rgba(12, 14, 20, 0.92);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    background: rgba(6, 10, 15, 0.88);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
     border-bottom: 1px solid var(--border);
     display: flex;
     align-items: center;
@@ -317,17 +359,15 @@ button, input, select, textarea {
 
 .search-input {
     width: 100%;
-    padding: 9px 36px 9px 40px;
+    padding: 8px 36px 8px 40px;
     border-radius: var(--radius);
     border: 1px solid var(--border);
     background: var(--surface);
     color: var(--text);
-    /* iOS: min 16px prevents auto-zoom on focus */
-    font-size: max(16px, 0.85rem);
+    font-size: max(16px, 0.84rem);
     font-family: inherit;
     outline: none;
     transition: all var(--transition);
-    /* Remove iOS default styling */
     -webkit-appearance: none;
     appearance: none;
 }
@@ -336,6 +376,7 @@ button, input, select, textarea {
 
 .search-input:focus {
     border-color: var(--accent);
+    background: var(--surface-alt);
     box-shadow: 0 0 0 3px var(--accent-dim);
 }
 
@@ -365,15 +406,16 @@ button, input, select, textarea {
     display: flex;
     align-items: center;
     gap: 6px;
-    font-size: 0.72rem;
-    font-weight: 600;
+    font-size: 0.67rem;
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.1em;
     color: var(--positive);
-    background: rgba(34, 197, 94, 0.08);
+    background: rgba(34, 197, 94, 0.07);
     padding: 5px 12px;
     border-radius: 20px;
-    border: 1px solid rgba(34, 197, 94, 0.2);
+    border: 1px solid rgba(34, 197, 94, 0.18);
+    white-space: nowrap;
 }
 
 .pulse {
@@ -391,37 +433,46 @@ button, input, select, textarea {
 .metrics-bar {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 16px;
-    padding: 24px 28px 8px;
+    gap: 12px;
+    padding: 20px 28px 12px;
 }
 
 .metric {
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
-    padding: 18px 20px;
+    padding: 16px 20px;
     display: flex;
     flex-direction: column;
-    transition: border-color var(--transition);
+    gap: 4px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color var(--transition), box-shadow var(--transition);
 }
 
 .metric:hover {
     border-color: var(--border-light);
+    box-shadow: var(--shadow);
 }
 
+.metric:nth-child(1)::before { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px; background: var(--accent); }
+.metric:nth-child(2)::before { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px; background: var(--positive); }
+.metric:nth-child(3)::before { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px; background: var(--nl); }
+.metric:nth-child(4)::before { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px; background: var(--int); }
+
 .metric-value {
-    font-size: 1.6rem;
-    font-weight: 700;
-    letter-spacing: -0.03em;
+    font-size: 1.9rem;
+    font-weight: 800;
+    font-family: var(--font-mono);
+    letter-spacing: -0.05em;
     line-height: 1;
-    margin-bottom: 4px;
 }
 
 .metric-label {
-    font-size: 0.72rem;
-    font-weight: 500;
+    font-size: 0.67rem;
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.09em;
     color: var(--text-muted);
 }
 
@@ -434,7 +485,7 @@ button, input, select, textarea {
 
 .content {
     flex: 1;
-    padding: 20px 28px 40px;
+    padding: 16px 28px 40px;
 }
 
 .search-status {
@@ -462,12 +513,14 @@ button, input, select, textarea {
 }
 
 .section-header h2 {
-    font-size: 1.1rem;
+    font-size: 0.72rem;
     font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
     display: flex;
     align-items: center;
     gap: 8px;
-    letter-spacing: -0.01em;
 }
 
 .section-flag {
@@ -475,12 +528,14 @@ button, input, select, textarea {
 }
 
 .section-count {
-    font-size: 0.75rem;
-    font-weight: 500;
+    font-size: 0.68rem;
+    font-weight: 700;
+    font-family: var(--font-mono);
     color: var(--text-muted);
     background: var(--surface-alt);
-    padding: 4px 12px;
-    border-radius: 20px;
+    border: 1px solid var(--border);
+    padding: 3px 10px;
+    border-radius: 4px;
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -489,15 +544,15 @@ button, input, select, textarea {
 
 .card-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-    gap: 14px;
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    gap: 10px;
 }
 
 .card {
     background: var(--card);
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
-    padding: 20px;
+    padding: 16px 18px;
     display: flex;
     flex-direction: column;
     position: relative;
@@ -508,21 +563,29 @@ button, input, select, textarea {
 .card:hover {
     background: var(--card-hover);
     border-color: var(--border-light);
-    box-shadow: var(--shadow);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
     transform: translateY(-1px);
 }
 
 /* Tier variants */
 .card-tier1 {
-    border-left: 3px solid var(--accent);
+    border-left: 2px solid var(--priority);
+}
+
+.card-tier1::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, var(--priority), transparent 70%);
 }
 
 .card-tier1:hover {
-    border-left-color: var(--accent);
+    border-left-color: var(--priority);
 }
 
 .card-tier3 {
-    opacity: 0.65;
+    opacity: 0.5;
 }
 
 .card-tier3:hover {
@@ -530,14 +593,15 @@ button, input, select, textarea {
 }
 
 .tier-badge {
-    font-size: 0.58rem;
+    font-size: 0.57rem;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--accent);
-    background: var(--accent-dim);
-    padding: 3px 8px;
-    border-radius: 4px;
+    letter-spacing: 0.1em;
+    color: var(--priority);
+    background: rgba(245, 158, 11, 0.10);
+    border: 1px solid rgba(245, 158, 11, 0.25);
+    padding: 2px 7px;
+    border-radius: 3px;
     white-space: nowrap;
     flex-shrink: 0;
 }
@@ -546,28 +610,36 @@ button, input, select, textarea {
 .card-top {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    gap: 6px;
     margin-bottom: 10px;
+    flex-wrap: wrap;
 }
 
 .card-source {
-    font-size: 0.68rem;
+    font-size: 0.62rem;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.08em;
     color: var(--accent);
+    background: var(--accent-dim);
+    padding: 2px 7px;
+    border-radius: 3px;
+    flex-shrink: 0;
 }
 
 .card-time {
-    font-size: 0.7rem;
+    font-size: 0.67rem;
     color: var(--text-muted);
     font-weight: 500;
+    margin-left: auto;
+    font-family: var(--font-mono);
+    flex-shrink: 0;
 }
 
 .card-title {
-    font-size: 0.95rem;
+    font-size: 0.88rem;
     font-weight: 600;
-    line-height: 1.4;
+    line-height: 1.45;
     margin-bottom: 8px;
     letter-spacing: -0.01em;
 }
@@ -581,11 +653,11 @@ button, input, select, textarea {
 }
 
 .card-summary {
-    font-size: 0.82rem;
+    font-size: 0.78rem;
     color: var(--text-secondary);
-    line-height: 1.55;
+    line-height: 1.6;
     flex: 1;
-    margin-bottom: 14px;
+    margin-bottom: 12px;
 }
 
 /* Card meta */
@@ -594,8 +666,8 @@ button, input, select, textarea {
     align-items: center;
     justify-content: space-between;
     flex-wrap: wrap;
-    gap: 6px;
-    padding-top: 12px;
+    gap: 5px;
+    padding-top: 10px;
     border-top: 1px solid var(--border);
 }
 
@@ -614,55 +686,58 @@ button, input, select, textarea {
 .tag {
     display: inline-flex;
     align-items: center;
-    font-size: 0.66rem;
+    font-size: 0.62rem;
     font-weight: 600;
-    padding: 3px 8px;
-    border-radius: 4px;
+    padding: 2px 7px;
+    border-radius: 3px;
     white-space: nowrap;
 }
 
 .tag-score {
     background: var(--accent-dim);
     color: var(--accent);
+    font-family: var(--font-mono);
+    border: 1px solid rgba(6, 182, 212, 0.2);
 }
 
 .tag-sentiment {
-    background: var(--surface-alt);
+    background: transparent;
     color: var(--text-muted);
+    border: 1px solid var(--border);
 }
 
 .tag-keyword {
-    background: var(--surface);
+    background: transparent;
     color: var(--text-muted);
     border: 1px solid var(--border);
     font-weight: 500;
 }
 
-.today-text { color: #22c55e; }
+.today-text { color: var(--positive); }
 
 .new-badge {
-    font-size: 0.58rem;
+    font-size: 0.57rem;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: #22c55e;
-    background: rgba(34, 197, 94, 0.12);
-    border: 1px solid rgba(34, 197, 94, 0.3);
-    padding: 3px 8px;
-    border-radius: 4px;
+    letter-spacing: 0.1em;
+    color: var(--positive);
+    background: rgba(34, 197, 94, 0.08);
+    border: 1px solid rgba(34, 197, 94, 0.22);
+    padding: 2px 7px;
+    border-radius: 3px;
     white-space: nowrap;
     flex-shrink: 0;
 }
 
 .tag-topic {
-    background: rgba(6, 182, 212, 0.10);
+    background: var(--accent-dim);
     color: var(--accent);
     border: 1px solid rgba(6, 182, 212, 0.2);
     transition: background var(--transition);
 }
 
 .tag-topic:hover {
-    background: rgba(6, 182, 212, 0.2);
+    background: var(--accent-glow);
 }
 
 .search-clear-link {
@@ -706,13 +781,15 @@ button, input, select, textarea {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 6px;
-    padding: 18px 28px;
-    /* iOS: add space above home indicator */
-    padding-bottom: max(18px, env(safe-area-inset-bottom));
-    font-size: 0.72rem;
+    gap: 8px;
+    padding: 14px 28px;
+    padding-bottom: max(14px, env(safe-area-inset-bottom));
+    font-size: 0.64rem;
     color: var(--text-muted);
     border-top: 1px solid var(--border);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
 }
 
 .footer-sep { opacity: 0.3; }
@@ -765,10 +842,10 @@ button, input, select, textarea {
 
     .metrics-bar {
         grid-template-columns: repeat(2, 1fr);
-        padding: 16px;
+        padding: 14px 16px;
         padding-left: max(16px, env(safe-area-inset-left));
         padding-right: max(16px, env(safe-area-inset-right));
-        gap: 10px;
+        gap: 8px;
     }
 
     .metric {
@@ -776,7 +853,7 @@ button, input, select, textarea {
     }
 
     .metric-value {
-        font-size: 1.3rem;
+        font-size: 1.5rem;
     }
 
     .content {

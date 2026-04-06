@@ -9,6 +9,9 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Voltera News">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/style.css">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
 </head>
@@ -98,7 +101,7 @@
         <!-- Topbalk -->
         <header class="topbar">
             <button class="mobile-menu-btn" onclick="document.body.classList.toggle('sidebar-open')" aria-label="Menu">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
             </button>
 
             <form method="get" action="/" class="search-form">
@@ -166,7 +169,7 @@
             <section class="feed-section">
                 <div class="section-header">
                     <h2><span class="section-flag">🇳🇱</span> Nederland</h2>
-                    <span class="section-count">{{ nl_articles|length }} artikel(en)</span>
+                    <span class="section-count">{{ nl_articles|length }}</span>
                 </div>
                 <div class="card-grid">
                 {% for a in nl_articles %}
@@ -209,7 +212,7 @@
             <section class="feed-section">
                 <div class="section-header">
                     <h2><span class="section-flag">🌍</span> Internationaal</h2>
-                    <span class="section-count">{{ int_articles|length }} artikel(en)</span>
+                    <span class="section-count">{{ int_articles|length }}</span>
                 </div>
                 <div class="card-grid">
                 {% for a in int_articles %}
@@ -258,11 +261,13 @@
         </main>
 
         <footer class="footer">
-            <span>Voltera News Tracker v1.0</span>
+            <span>Voltera News Tracker</span>
             <span class="footer-sep">·</span>
-            <span>Ververst elke 60s</span>
+            <span>Auto-refresh 60s</span>
             <span class="footer-sep">·</span>
-            <span>Data bewaard 7 dagen</span>
+            <span>Bewaring 7d</span>
+            <span class="footer-sep">·</span>
+            <span>{{ total_feeds }} feeds actief</span>
         </footer>
     </div>
 
