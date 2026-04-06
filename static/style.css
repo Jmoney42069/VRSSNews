@@ -1,5 +1,5 @@
 ﻿/* =============================================================
-   Voltera News Tracker — Arc / Firma Style
+   Voltera News Tracker — Groen Firma Style
    ============================================================= */
 
 @supports (height: 100dvh) {
@@ -9,26 +9,26 @@
 
 :root {
     /* Backgrounds */
-    --bg:           #111116;
-    --surface:      #18181f;
-    --surface-alt:  #1e1e28;
-    --card:         #18181f;
-    --card-hover:   #1d1d27;
+    --bg:           #0c110e;
+    --surface:      #131a15;
+    --surface-alt:  #192110;
+    --card:         #131a15;
+    --card-hover:   #172019;
 
     /* Borders */
     --border:       rgba(255,255,255,0.07);
     --border-hover: rgba(255,255,255,0.13);
 
     /* Typography */
-    --text:         #ededf4;
-    --text-sub:     #8888a8;
-    --text-muted:   #44445a;
+    --text:         #edf4ef;
+    --text-sub:     #7a9882;
+    --text-muted:   #3d5443;
 
-    /* Accent — Arc violet */
-    --accent:       #8b5cf6;
-    --accent-soft:  rgba(139,92,246,0.10);
-    --accent-mid:   rgba(139,92,246,0.22);
-    --accent-glow:  rgba(139,92,246,0.32);
+    /* Accent — Voltera groen */
+    --accent:       #22c55e;
+    --accent-soft:  rgba(34,197,94,0.10);
+    --accent-mid:   rgba(34,197,94,0.20);
+    --accent-glow:  rgba(34,197,94,0.30);
 
     /* Categories */
     --nl:           #fb923c;
@@ -36,9 +36,9 @@
     --int:          #60a5fa;
     --int-soft:     rgba(96,165,250,0.10);
 
-    /* Status */
-    --green:        #34d399;
-    --green-soft:   rgba(52,211,153,0.10);
+    /* Status / signals */
+    --green:        #22c55e;
+    --green-soft:   rgba(34,197,94,0.10);
     --red:          #f87171;
     --amber:        #fbbf24;
     --amber-soft:   rgba(251,191,36,0.10);
@@ -79,7 +79,7 @@ a { color:inherit; text-decoration:none; -webkit-tap-highlight-color:transparent
 button, input { -webkit-tap-highlight-color:transparent; }
 
 /* =============================================================
-   SIDEBAR — Arc style
+   SIDEBAR
    ============================================================= */
 
 .sidebar {
@@ -95,17 +95,16 @@ button, input { -webkit-tap-highlight-color:transparent; }
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
     padding-left: env(safe-area-inset-left);
-    /* Arc warm-dark gradient */
-    background: linear-gradient(160deg, #1e1030 0%, #181820 45%, #111116 100%);
+    background: linear-gradient(160deg, #0d1f12 0%, #121a14 50%, #0c110e 100%);
 }
 
-/* Bokeh glow top-right */
+/* Bokeh glow */
 .sidebar::before {
     content: '';
     position: absolute;
     top:-80px; right:-80px;
     width:240px; height:240px;
-    background: radial-gradient(circle, rgba(139,92,246,0.16) 0%, transparent 68%);
+    background: radial-gradient(circle, rgba(34,197,94,0.12) 0%, transparent 68%);
     pointer-events: none;
 }
 
@@ -125,9 +124,9 @@ button, input { -webkit-tap-highlight-color:transparent; }
     align-items: center;
     justify-content: center;
     font-size: 1.05rem;
-    background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+    background: linear-gradient(135deg, #22c55e, #16a34a);
     border-radius: 11px;
-    box-shadow: 0 4px 16px rgba(109,40,217,0.5);
+    box-shadow: 0 4px 16px rgba(34,197,94,0.4);
     flex-shrink: 0;
 }
 
@@ -175,7 +174,6 @@ button, input { -webkit-tap-highlight-color:transparent; }
     padding: 10px 8px 5px;
 }
 
-/* Arc-style pill nav items */
 .nav-item {
     display: flex;
     align-items: center;
@@ -199,7 +197,7 @@ button, input { -webkit-tap-highlight-color:transparent; }
 
 .nav-item.active {
     background: var(--accent-soft);
-    color: #c4b5fd;
+    color: #86efac;
     font-weight: 600;
 }
 
@@ -225,7 +223,7 @@ button, input { -webkit-tap-highlight-color:transparent; }
 
 .nav-item.active .nav-count {
     background: var(--accent-mid);
-    color: #c4b5fd;
+    color: #86efac;
 }
 
 /* ── Sidebar stats ── */
@@ -303,7 +301,7 @@ button, input { -webkit-tap-highlight-color:transparent; }
     top: env(safe-area-inset-top);
     z-index: 50;
     height: var(--topbar-h);
-    background: rgba(17,17,22,0.82);
+    background: rgba(12,17,14,0.85);
     backdrop-filter: blur(28px) saturate(160%);
     -webkit-backdrop-filter: blur(28px) saturate(160%);
     border-bottom: 1px solid var(--border);
@@ -393,7 +391,7 @@ button, input { -webkit-tap-highlight-color:transparent; }
     background: var(--green-soft);
     padding: 5px 12px;
     border-radius: var(--radius-pill);
-    border: 1px solid rgba(52,211,153,0.18);
+    border: 1px solid rgba(34,197,94,0.22);
     white-space: nowrap;
 }
 
@@ -515,7 +513,7 @@ button, input { -webkit-tap-highlight-color:transparent; }
 }
 
 /* =============================================================
-   ARTICLE CARDS — rounded Arc style
+   ARTICLE CARDS
    ============================================================= */
 
 .card-grid {
@@ -543,7 +541,7 @@ button, input { -webkit-tap-highlight-color:transparent; }
     transform: translateY(-1px);
 }
 
-/* Tier 1 — violet accent */
+/* Tier 1 — groen accent */
 .card-tier1 {
     border-left: 2px solid var(--accent);
 }
@@ -599,7 +597,7 @@ button, input { -webkit-tap-highlight-color:transparent; }
     letter-spacing: 0.08em;
     color: var(--green);
     background: var(--green-soft);
-    border: 1px solid rgba(52,211,153,0.2);
+    border: 1px solid rgba(34,197,94,0.25);
     padding: 2px 7px;
     border-radius: var(--radius-pill);
     white-space: nowrap;
@@ -623,7 +621,7 @@ button, input { -webkit-tap-highlight-color:transparent; }
     letter-spacing: -0.01em;
 }
 .card-title a { transition: color var(--t); }
-.card-title a:hover { color: #c4b5fd; }
+.card-title a:hover { color: #86efac; }
 
 .card-summary {
     font-size: 0.78rem;
@@ -669,7 +667,7 @@ button, input { -webkit-tap-highlight-color:transparent; }
 
 .tag-score {
     background: var(--accent-soft);
-    color: #c4b5fd;
+    color: #86efac;
     font-family: var(--mono);
 }
 
@@ -688,8 +686,8 @@ button, input { -webkit-tap-highlight-color:transparent; }
 
 .tag-topic {
     background: var(--accent-soft);
-    color: #c4b5fd;
-    border: 1px solid rgba(139,92,246,0.2);
+    color: #86efac;
+    border: 1px solid rgba(34,197,94,0.22);
     transition: background var(--t);
 }
 .tag-topic:hover { background: var(--accent-mid); }

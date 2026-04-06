@@ -134,39 +134,51 @@ def send_email(article: dict, summary: str) -> bool:
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body {{ font-family: 'Segoe UI', Arial, sans-serif; background:#0f0f14; margin:0; padding:0; }}
-    .wrap {{ max-width:600px; margin:32px auto; background:#18181f; border-radius:16px; overflow:hidden; border:1px solid rgba(255,255,255,0.07); }}
-    .header {{ background:linear-gradient(135deg,#1e1030,#18181f); padding:28px 32px 20px; border-bottom:1px solid rgba(255,255,255,0.07); }}
-    .logo {{ font-size:22px; font-weight:800; color:#ededf4; letter-spacing:-0.03em; }}
-    .logo span {{ color:#8b5cf6; }}
-    .tag {{ display:inline-block; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.1em; padding:3px 10px; border-radius:999px; margin-top:10px; }}
-    .tag-priority {{ background:rgba(251,191,36,0.12); color:#fbbf24; border:1px solid rgba(251,191,36,0.25); }}
-    .tag-cat {{ background:rgba(139,92,246,0.12); color:#c4b5fd; border:1px solid rgba(139,92,246,0.22); margin-left:6px; }}
-    .body {{ padding:28px 32px; }}
-    .title {{ font-size:20px; font-weight:700; color:#ededf4; line-height:1.4; margin:0 0 14px; letter-spacing:-0.02em; }}
-    .summary {{ font-size:14px; color:#8888a8; line-height:1.7; margin:0 0 22px; }}
-    .meta-row {{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:22px; }}
-    .pill {{ font-size:11px; font-weight:600; padding:3px 10px; border-radius:999px; }}
-    .pill-score {{ background:rgba(139,92,246,0.12); color:#c4b5fd; }}
-    .pill-sent {{ background:rgba(255,255,255,0.05); color:#8888a8; }}
-    .pill-kw {{ background:rgba(255,255,255,0.05); color:#8888a8; }}
-    .divider {{ height:1px; background:rgba(255,255,255,0.07); margin:0 0 22px; }}
-    .source-row {{ font-size:12px; color:#44445a; margin-bottom:20px; }}
-    .source-row strong {{ color:#8888a8; }}
-    .cta {{ display:inline-block; background:linear-gradient(135deg,#8b5cf6,#6d28d9); color:#fff !important; text-decoration:none; font-size:14px; font-weight:700; padding:12px 28px; border-radius:999px; letter-spacing:0.01em; }}
-    .footer {{ padding:18px 32px; border-top:1px solid rgba(255,255,255,0.07); font-size:11px; color:#44445a; text-align:center; }}
+    body {{ font-family: 'Segoe UI', Arial, sans-serif; background:#f0f4f1; margin:0; padding:0; }}
+    .outer {{ padding:32px 16px; background:#f0f4f1; }}
+    .wrap {{ max-width:600px; margin:0 auto; background:#ffffff; border-radius:16px; overflow:hidden; box-shadow:0 4px 24px rgba(0,0,0,0.08); }}
+    .header {{ background:linear-gradient(135deg,#0d3320 0%,#166534 60%,#15803d 100%); padding:32px 36px 26px; }}
+    .logo {{ font-size:24px; font-weight:800; color:#ffffff; letter-spacing:-0.03em; }}
+    .logo-dot {{ color:#86efac; }}
+    .header-sub {{ font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.13em; color:rgba(255,255,255,0.45); margin-top:2px; }}
+    .badges {{ margin-top:18px; display:flex; gap:8px; flex-wrap:wrap; }}
+    .badge {{ display:inline-block; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.1em; padding:4px 12px; border-radius:999px; }}
+    .badge-priority {{ background:rgba(251,191,36,0.18); color:#fbbf24; border:1px solid rgba(251,191,36,0.35); }}
+    .badge-cat {{ background:rgba(134,239,172,0.15); color:#86efac; border:1px solid rgba(134,239,172,0.3); }}
+    .body {{ padding:32px 36px 28px; }}
+    .label {{ font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.12em; color:#16a34a; margin-bottom:10px; }}
+    .title {{ font-size:22px; font-weight:800; color:#0f1f14; line-height:1.35; margin:0 0 16px; letter-spacing:-0.02em; }}
+    .summary {{ font-size:14px; color:#374151; line-height:1.75; margin:0 0 24px; border-left:3px solid #22c55e; padding-left:14px; }}
+    .divider {{ height:1px; background:#e5e7eb; margin:0 0 20px; }}
+    .meta-row {{ display:flex; gap:6px; flex-wrap:wrap; margin-bottom:24px; }}
+    .pill {{ font-size:11px; font-weight:600; padding:4px 11px; border-radius:999px; }}
+    .pill-score {{ background:#dcfce7; color:#166534; }}
+    .pill-sent {{ background:#f3f4f6; color:#6b7280; }}
+    .pill-kw {{ background:#f3f4f6; color:#6b7280; }}
+    .source-block {{ background:#f9fafb; border-radius:10px; padding:14px 18px; margin-bottom:26px; display:flex; justify-content:space-between; align-items:center; }}
+    .source-label {{ font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.1em; color:#9ca3af; margin-bottom:3px; }}
+    .source-name {{ font-size:13px; font-weight:700; color:#111827; }}
+    .pub-time {{ font-size:12px; color:#9ca3af; font-weight:500; }}
+    .cta-wrap {{ text-align:center; padding-bottom:4px; }}
+    .cta {{ display:inline-block; background:linear-gradient(135deg,#16a34a,#15803d); color:#ffffff !important; text-decoration:none; font-size:14px; font-weight:700; padding:14px 36px; border-radius:999px; letter-spacing:0.01em; box-shadow:0 4px 14px rgba(22,163,74,0.35); }}
+    .footer {{ background:#f9fafb; border-top:1px solid #e5e7eb; padding:18px 36px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }}
+    .footer-brand {{ font-size:12px; font-weight:700; color:#16a34a; }}
+    .footer-text {{ font-size:11px; color:#9ca3af; }}
   </style>
 </head>
 <body>
+  <div class="outer">
   <div class="wrap">
     <div class="header">
-      <div class="logo">Volt<span>era</span> News</div>
-      <div>
-        <span class="tag tag-priority">HOGE PRIORITEIT</span>
-        <span class="tag tag-cat">{cat}</span>
+      <div class="logo">Volt<span class="logo-dot">era</span></div>
+      <div class="header-sub">Energie Nieuws Tracker</div>
+      <div class="badges">
+        <span class="badge badge-priority">⚡ Hoge Prioriteit</span>
+        <span class="badge badge-cat">{cat}</span>
       </div>
     </div>
     <div class="body">
+      <div class="label">Nieuw energie-artikel</div>
       <h1 class="title">{title}</h1>
       <p class="summary">{summary}</p>
       <div class="meta-row">
@@ -175,10 +187,22 @@ def send_email(article: dict, summary: str) -> bool:
         {chr(10).join(f'<span class="pill pill-kw">{kw.strip()}</span>' for kw in keywords.split(',') if kw.strip())}
       </div>
       <div class="divider"></div>
-      <div class="source-row">Bron: <strong>{source}</strong>{f' &nbsp;·&nbsp; {pub_time}' if pub_time else ''}</div>
-      <a href="{link}" class="cta">Artikel lezen →</a>
+      <div class="source-block">
+        <div>
+          <div class="source-label">Bron</div>
+          <div class="source-name">{source}</div>
+        </div>
+        {f'<div class="pub-time">{pub_time}</div>' if pub_time else ''}
+      </div>
+      <div class="cta-wrap">
+        <a href="{link}" class="cta">Artikel lezen &rarr;</a>
+      </div>
     </div>
-    <div class="footer">Voltera News Tracker &nbsp;·&nbsp; Alleen hoge prioriteit artikelen &nbsp;·&nbsp; Automatisch gegenereerd</div>
+    <div class="footer">
+      <span class="footer-brand">Voltera News Tracker</span>
+      <span class="footer-text">Alleen hoge prioriteit &nbsp;&middot;&nbsp; Automatisch gegenereerd</span>
+    </div>
+  </div>
   </div>
 </body>
 </html>"""
