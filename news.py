@@ -30,6 +30,9 @@ RSS_FEEDS: list[dict] = [
     {"name": "NU.nl Economie", "url": "https://www.nu.nl/rss/Economie", "tier": 2, "region": "NL"},
     {"name": "Rijksoverheid Nieuws", "url": "https://feeds.rijksoverheid.nl/nieuws.rss", "tier": 2, "region": "NL"},
     {"name": "Duurzaam Nieuws", "url": "https://www.duurzaamnieuws.nl/feed/", "tier": 2, "region": "NL"},
+    {"name": "Milieu Centraal", "url": "https://www.milieucentraal.nl/rss.xml", "tier": 2, "region": "NL"},
+    {"name": "Belastingdienst", "url": "https://www.belastingdienst.nl/wps/wcm/connect/bldcontentnl/belastingdienst/rss/nieuws.rss", "tier": 2, "region": "NL"},
+    {"name": "AFM", "url": "https://www.afm.nl/nl-nl/nieuws/rss", "tier": 2, "region": "NL"},
 
     # ── 🌍 INTERNATIONAAL — Tier 1 ──
     {"name": "PV Magazine", "url": "https://www.pv-magazine.com/feed/", "tier": 1, "region": "INT"},
@@ -56,33 +59,54 @@ RSS_FEEDS: list[dict] = [
 # ---------------------------------------------------------------------------
 
 KEYWORDS: dict[str, int] = {
-    # Dutch
+    # Dutch — energie & installatiebranche
     "zonnepanelen": 3,
     "netcongestie": 3,
     "dynamisch tarief": 3,
+    "dynamische tarieven": 3,
     "onbalansmarkt": 3,
+    "onbalanshandel": 3,
+    "salderingsregeling": 3,
+    "teruglevering": 2,
     "energiebedrijf": 2,
+    "energiemaatschappij": 2,
     "energieprijs": 2,
+    "energierekening": 2,
     "warmtepomp": 2,
     "installateur": 2,
+    "installatiebranche": 3,
+    "verduurzaming": 2,
+    "thuisbatterij": 3,
+    "batterij": 2,
+    "netbeheer": 2,
+    "tennet": 2,
+    "distributeur": 2,
+    "zonnepaneel": 2,
     # English / universal
     "battery storage": 3,
     "energy management system": 3,
     "energy management": 2,
     "solar": 2,
-    "batterij": 2,
     "battery": 2,
     "storage": 1,
     "ems": 2,
     "pv": 1,
     "grid congestion": 3,
     "energy price": 2,
+    "energy bill": 2,
     "heat pump": 2,
     "inverter": 1,
     "renewable": 1,
     "net metering": 2,
-    "salderingsregeling": 3,
-    "teruglevering": 2,
+    "geopolitics": 2,
+    "geopolitical": 2,
+    "tariff": 1,
+    "imbalance market": 3,
+    "smart grid": 2,
+    "flexibility": 2,
+    "energy storage": 3,
+    "rooftop solar": 2,
+    "home battery": 3,
 }
 
 MIN_RELEVANCE_SCORE = 2
@@ -95,8 +119,11 @@ NL_INDICATORS = {
     "nederland", "dutch", "nederlandse", "holland", "rijksoverheid",
     "amsterdam", "rotterdam", "den haag", "utrecht", "nos", "nu.nl",
     "zonnepanelen", "netcongestie", "energieprijs", "dynamisch tarief",
-    "onbalansmarkt", "warmtepomp", "installateur", "energiebedrijf",
+    "onbalansmarkt", "onbalanshandel", "warmtepomp", "installateur",
+    "energiebedrijf", "energiemaatschappij", "energierekening",
     "salderingsregeling", "teruglevering", "tennet", "netbeheer",
+    "installatiebranche", "verduurzaming", "distributeur",
+    "belastingdienst", "afm", "acm", "milieu centraal",
 }
 
 POSITIVE_WORDS = {
@@ -179,13 +206,15 @@ def fetch_all_feeds() -> list[dict]:
 
 # Topics in priority order — first match wins
 TOPICS: list[tuple[str, list[str]]] = [
-    ("Zonnepanelen",   ["zonnepanelen", "solar", "pv", "salderingsregeling", "teruglevering", "net metering", "rooftop solar", "plug-in solar"]),
-    ("Thuisbatterijen", ["batterij", "battery storage", "battery", "thuisbatterij", "home battery", "opslag"]),
-    ("Netcongestie",   ["netcongestie", "grid congestion", "congestie", "net vol", "netverzwaring"]),
-    ("Warmtepompen",   ["warmtepomp", "heat pump", "wp"]),
-    ("Energieprijzen", ["energieprijs", "energy price", "dynamisch tarief", "stroomprijs", "gasprijs", "gas price", "electricity price"]),
-    ("Energiebeheer",  ["ems", "energy management system", "energy management", "smart grid", "vrm", "onbalansmarkt"]),
-    ("Markt & Beleid", ["installateur", "energiebedrijf", "subsidie", "beleid", "wet", "regelgeving", "renewable", "wind", "offshore"]),
+    ("Zonnepanelen",      ["zonnepanelen", "zonnepaneel", "solar", "pv", "salderingsregeling", "teruglevering", "net metering", "rooftop solar", "plug-in solar"]),
+    ("Thuisbatterijen",   ["batterij", "battery storage", "battery", "thuisbatterij", "home battery", "opslag", "energy storage"]),
+    ("Netcongestie",      ["netcongestie", "grid congestion", "congestie", "net vol", "netverzwaring", "netbeheer", "tennet"]),
+    ("Warmtepompen",      ["warmtepomp", "heat pump"]),
+    ("Energieprijzen",    ["energieprijs", "energierekening", "energy price", "energy bill", "dynamisch tarief", "dynamische tarieven", "stroomprijs", "gasprijs", "gas price", "electricity price"]),
+    ("Onbalansmarkt",     ["onbalansmarkt", "onbalanshandel", "imbalance market", "flexibility", "smart grid", "vrm"]),
+    ("Energiebeheer",     ["ems", "energy management system", "energy management"]),
+    ("Installatiebranche",["installateur", "installatiebranche", "distributeur", "verduurzaming"]),
+    ("Markt & Beleid",    ["subsidie", "beleid", "wet", "regelgeving", "renewable", "wind", "offshore", "geopolit", "tariff", "belastingdienst", "afm"]),
 ]
 
 TOPIC_LABELS_NL = {t[0]: t[0] for t in TOPICS}

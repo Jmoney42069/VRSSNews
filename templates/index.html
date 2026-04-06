@@ -171,9 +171,9 @@
                 <div class="card-grid">
                 {% for a in nl_articles %}
                     <article class="card {% if a.tier == 1 %}card-tier1{% elif a.tier == 3 %}card-tier3{% endif %}">
-                        {% if a.tier == 1 %}<div class="tier-badge">HOGE PRIORITEIT</div>{% endif %}
                         <div class="card-top">
                             <span class="card-source">{{ a.source }}</span>
+                            {% if a.tier == 1 %}<span class="tier-badge">HOGE PRIORITEIT</span>{% endif %}
                             <time class="card-time">{{ a.time_ago }}</time>
                         </div>
                         <h3 class="card-title">
@@ -213,9 +213,9 @@
                 <div class="card-grid">
                 {% for a in int_articles %}
                     <article class="card {% if a.tier == 1 %}card-tier1{% elif a.tier == 3 %}card-tier3{% endif %}">
-                        {% if a.tier == 1 %}<div class="tier-badge">HOGE PRIORITEIT</div>{% endif %}
                         <div class="card-top">
                             <span class="card-source">{{ a.source }}</span>
+                            {% if a.tier == 1 %}<span class="tier-badge">HOGE PRIORITEIT</span>{% endif %}
                             <time class="card-time">{{ a.time_ago }}</time>
                         </div>
                         <h3 class="card-title">
