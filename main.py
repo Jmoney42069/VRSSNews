@@ -153,14 +153,16 @@ def _worker_cycle() -> None:
     relevant = news.filter_and_enrich(articles)
 
     # 3. Store new articles & collect those that need alerting
+    # Skip alerts on the very first poll after startup (avoids duplicate mails
+    # when the DB is fresh or when both local and Render start simultaneously)
+    is_first_poll = _last_poll_at is None
     new_count = 0
     to_alert: list[dict] = []
     for article in relevant:
         was_new = db.insert_article(article)
         if was_new:
             new_count += 1
-            # Only alert for tier 1 (high priority) articles
-            if article.get("tier", 2) == 1:
+            if not is_first_poll and article.get("tier", 2) == 1:
                 to_alert.append(article)
 
     log.info("Stored %d new articles (%d already existed)", new_count, len(relevant) - new_count)
