@@ -81,6 +81,9 @@ def index():
 
     counts = db.get_article_count()
 
+    # Collect unique active sources
+    sources = sorted({a["source"] for a in articles if a.get("source")})
+
     return render_template(
         "index.html",
         nl_articles=nl_articles,
@@ -88,6 +91,9 @@ def index():
         counts=counts,
         search=search,
         cat_filter=cat_filter,
+        sources=sources,
+        total_feeds=len(news.RSS_FEEDS),
+        last_updated=datetime.now(timezone.utc).strftime("%H:%M UTC"),
     )
 
 

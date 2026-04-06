@@ -3,104 +3,228 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>⚡ Energy News Tracker</title>
+    <title>Energy News Tracker — Real-time Monitoring</title>
     <meta http-equiv="refresh" content="60">
     <link rel="stylesheet" href="/static/style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
 </head>
 <body>
-    <header>
-        <h1>⚡ Energy News Tracker</h1>
-        <p class="subtitle">Real-time energy news monitoring dashboard</p>
-        <div class="stats">
-            <span class="badge">Total: {{ counts.get('total', 0) }}</span>
-            <span class="badge nl">🇳🇱 NL: {{ counts.get('NL', 0) }}</span>
-            <span class="badge int">🌍 INT: {{ counts.get('INT', 0) }}</span>
-        </div>
-    </header>
 
-    <nav class="controls">
-        <form method="get" action="/" class="search-form">
-            <input
-                type="text"
-                name="q"
-                placeholder="Search articles..."
-                value="{{ search }}"
-                class="search-input"
-            >
-            <button type="submit" class="btn">Search</button>
+    <!-- ── Sidebar ── -->
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <div class="brand-icon">⚡</div>
+            <div class="brand-text">
+                <span class="brand-name">EnergyTracker</span>
+                <span class="brand-sub">News Intelligence</span>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="nav-label">Feed</div>
+            <a href="/" class="nav-item {% if not cat_filter %}active{% endif %}">
+                <span class="nav-icon">📊</span>
+                <span>All Articles</span>
+                <span class="nav-count">{{ counts.get('total', 0) }}</span>
+            </a>
+            <a href="/?cat=NL{% if search %}&q={{ search }}{% endif %}" class="nav-item {% if cat_filter == 'NL' %}active{% endif %}">
+                <span class="nav-icon">🇳🇱</span>
+                <span>Netherlands</span>
+                <span class="nav-count">{{ counts.get('NL', 0) }}</span>
+            </a>
+            <a href="/?cat=INT{% if search %}&q={{ search }}{% endif %}" class="nav-item {% if cat_filter == 'INT' %}active{% endif %}">
+                <span class="nav-icon">🌍</span>
+                <span>International</span>
+                <span class="nav-count">{{ counts.get('INT', 0) }}</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-stats">
+            <div class="nav-label">System Status</div>
+            <div class="stat-row">
+                <span class="stat-dot live"></span>
+                <span>Live — polling active</span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">Sources</span>
+                <span class="stat-value">{{ total_feeds }} feeds</span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">Interval</span>
+                <span class="stat-value">5 min</span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">Retention</span>
+                <span class="stat-value">7 days</span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">Updated</span>
+                <span class="stat-value">{{ last_updated }}</span>
+            </div>
+        </div>
+    </aside>
+
+    <!-- ── Main content ── -->
+    <div class="main-wrapper">
+
+        <!-- Top bar -->
+        <header class="topbar">
+            <button class="mobile-menu-btn" onclick="document.body.classList.toggle('sidebar-open')" aria-label="Menu">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+            </button>
+
+            <form method="get" action="/" class="search-form">
+                <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+                <input
+                    type="text"
+                    name="q"
+                    placeholder="Search articles, keywords, sources..."
+                    value="{{ search }}"
+                    class="search-input"
+                    autocomplete="off"
+                >
+                {% if cat_filter %}
+                    <input type="hidden" name="cat" value="{{ cat_filter }}">
+                {% endif %}
+                {% if search %}
+                    <a href="/{% if cat_filter %}?cat={{ cat_filter }}{% endif %}" class="search-clear" title="Clear search">&times;</a>
+                {% endif %}
+            </form>
+
+            <div class="topbar-right">
+                <span class="live-badge"><span class="pulse"></span> Live</span>
+            </div>
+        </header>
+
+        <!-- Dashboard metrics -->
+        <div class="metrics-bar">
+            <div class="metric">
+                <span class="metric-value">{{ counts.get('total', 0) }}</span>
+                <span class="metric-label">Total Articles</span>
+            </div>
+            <div class="metric">
+                <span class="metric-value nl-text">{{ counts.get('NL', 0) }}</span>
+                <span class="metric-label">Netherlands</span>
+            </div>
+            <div class="metric">
+                <span class="metric-value int-text">{{ counts.get('INT', 0) }}</span>
+                <span class="metric-label">International</span>
+            </div>
+            <div class="metric">
+                <span class="metric-value">{{ sources|length }}</span>
+                <span class="metric-label">Active Sources</span>
+            </div>
+        </div>
+
+        <!-- Article feed -->
+        <main class="content">
+
             {% if search %}
-                <a href="/" class="btn btn-clear">Clear</a>
+            <div class="search-status">
+                Showing results for <strong>"{{ search }}"</strong>
+                — {{ nl_articles|length + int_articles|length }} articles found
+            </div>
             {% endif %}
-        </form>
-        <div class="filters">
-            <a href="/" class="btn {% if not cat_filter %}active{% endif %}">All</a>
-            <a href="/?cat=NL{% if search %}&q={{ search }}{% endif %}" class="btn {% if cat_filter == 'NL' %}active{% endif %}">🇳🇱 NL</a>
-            <a href="/?cat=INT{% if search %}&q={{ search }}{% endif %}" class="btn {% if cat_filter == 'INT' %}active{% endif %}">🌍 International</a>
-        </div>
-    </nav>
 
-    <main>
-        {% if not cat_filter or cat_filter == 'NL' %}
-        <section class="feed-section">
-            <h2>🇳🇱 Netherlands</h2>
+            {% if not cat_filter or cat_filter == 'NL' %}
             {% if nl_articles %}
+            <section class="feed-section">
+                <div class="section-header">
+                    <h2><span class="section-flag">🇳🇱</span> Netherlands</h2>
+                    <span class="section-count">{{ nl_articles|length }} articles</span>
+                </div>
                 <div class="card-grid">
                 {% for a in nl_articles %}
-                    <article class="card tier-{{ a.tier }}">
-                        <div class="card-header">
-                            <span class="source">{{ a.source }}</span>
-                            <span class="time">{{ a.time_ago }}</span>
+                    <article class="card {% if a.tier == 1 %}card-tier1{% elif a.tier == 3 %}card-tier3{% endif %}">
+                        {% if a.tier == 1 %}<div class="tier-badge">HIGH PRIORITY</div>{% endif %}
+                        <div class="card-top">
+                            <span class="card-source">{{ a.source }}</span>
+                            <time class="card-time">{{ a.time_ago }}</time>
                         </div>
-                        <h3><a href="{{ a.link }}" target="_blank" rel="noopener">{{ a.title }}</a></h3>
-                        <p class="summary">{{ a.summary[:250] }}{% if a.summary|length > 250 %}…{% endif %}</p>
-                        <div class="card-footer">
-                            <span class="score" title="Relevance score">Score: {{ a.score }}</span>
-                            <span class="sentiment">{{ a.sentiment }}</span>
+                        <h3 class="card-title">
+                            <a href="{{ a.link }}" target="_blank" rel="noopener noreferrer">{{ a.title }}</a>
+                        </h3>
+                        <p class="card-summary">{{ a.summary[:220] }}{% if a.summary|length > 220 %}…{% endif %}</p>
+                        <div class="card-meta">
+                            <div class="meta-left">
+                                <span class="tag tag-score" title="Relevance score">{{ a.score }} pts</span>
+                                <span class="tag tag-sentiment">{{ a.sentiment }}</span>
+                            </div>
                             {% if a.keywords %}
-                                <span class="keywords" title="Matched keywords">{{ a.keywords }}</span>
+                            <div class="card-keywords">
+                                {% for kw in a.keywords.split(', ')[:3] %}
+                                    <span class="tag tag-keyword">{{ kw }}</span>
+                                {% endfor %}
+                            </div>
                             {% endif %}
                         </div>
                     </article>
                 {% endfor %}
                 </div>
-            {% else %}
-                <p class="empty">No Dutch articles found.</p>
+            </section>
             {% endif %}
-        </section>
-        {% endif %}
+            {% endif %}
 
-        {% if not cat_filter or cat_filter == 'INT' %}
-        <section class="feed-section">
-            <h2>🌍 International</h2>
+            {% if not cat_filter or cat_filter == 'INT' %}
             {% if int_articles %}
+            <section class="feed-section">
+                <div class="section-header">
+                    <h2><span class="section-flag">🌍</span> International</h2>
+                    <span class="section-count">{{ int_articles|length }} articles</span>
+                </div>
                 <div class="card-grid">
                 {% for a in int_articles %}
-                    <article class="card tier-{{ a.tier }}">
-                        <div class="card-header">
-                            <span class="source">{{ a.source }}</span>
-                            <span class="time">{{ a.time_ago }}</span>
+                    <article class="card {% if a.tier == 1 %}card-tier1{% elif a.tier == 3 %}card-tier3{% endif %}">
+                        {% if a.tier == 1 %}<div class="tier-badge">HIGH PRIORITY</div>{% endif %}
+                        <div class="card-top">
+                            <span class="card-source">{{ a.source }}</span>
+                            <time class="card-time">{{ a.time_ago }}</time>
                         </div>
-                        <h3><a href="{{ a.link }}" target="_blank" rel="noopener">{{ a.title }}</a></h3>
-                        <p class="summary">{{ a.summary[:250] }}{% if a.summary|length > 250 %}…{% endif %}</p>
-                        <div class="card-footer">
-                            <span class="score" title="Relevance score">Score: {{ a.score }}</span>
-                            <span class="sentiment">{{ a.sentiment }}</span>
+                        <h3 class="card-title">
+                            <a href="{{ a.link }}" target="_blank" rel="noopener noreferrer">{{ a.title }}</a>
+                        </h3>
+                        <p class="card-summary">{{ a.summary[:220] }}{% if a.summary|length > 220 %}…{% endif %}</p>
+                        <div class="card-meta">
+                            <div class="meta-left">
+                                <span class="tag tag-score" title="Relevance score">{{ a.score }} pts</span>
+                                <span class="tag tag-sentiment">{{ a.sentiment }}</span>
+                            </div>
                             {% if a.keywords %}
-                                <span class="keywords" title="Matched keywords">{{ a.keywords }}</span>
+                            <div class="card-keywords">
+                                {% for kw in a.keywords.split(', ')[:3] %}
+                                    <span class="tag tag-keyword">{{ kw }}</span>
+                                {% endfor %}
+                            </div>
                             {% endif %}
                         </div>
                     </article>
                 {% endfor %}
                 </div>
-            {% else %}
-                <p class="empty">No international articles found.</p>
+            </section>
             {% endif %}
-        </section>
-        {% endif %}
-    </main>
+            {% endif %}
 
-    <footer>
-        <p>Energy News Tracker — Polls every 5 minutes — Data retained 7 days</p>
-    </footer>
+            {% if not nl_articles and not int_articles %}
+            <div class="empty-state">
+                <div class="empty-icon">📡</div>
+                <h3>No articles found</h3>
+                <p>{% if search %}No results for "{{ search }}". Try a different search term.{% else %}Waiting for the first poll cycle to complete...{% endif %}</p>
+            </div>
+            {% endif %}
+
+        </main>
+
+        <footer class="footer">
+            <span>EnergyTracker v1.0</span>
+            <span class="footer-sep">·</span>
+            <span>Auto-refreshes every 60s</span>
+            <span class="footer-sep">·</span>
+            <span>Data retained 7 days</span>
+        </footer>
+    </div>
+
+    <!-- Mobile overlay -->
+    <div class="sidebar-overlay" onclick="document.body.classList.remove('sidebar-open')"></div>
+
 </body>
 </html>
