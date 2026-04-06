@@ -153,6 +153,7 @@ def _worker_cycle() -> None:
     relevant = news.filter_and_enrich(articles)
 
     # 3. Store new articles & collect those that need alerting
+    global _last_poll_at
     # Skip alerts on the very first poll after startup (avoids duplicate mails
     # when the DB is fresh or when both local and Render start simultaneously)
     is_first_poll = _last_poll_at is None
@@ -180,7 +181,6 @@ def _worker_cycle() -> None:
     # 5. Cleanup old data
     db.cleanup_old_articles()
 
-    global _last_poll_at
     _last_poll_at = datetime.now(timezone.utc)
     log.info("─── Poll cycle done ───")
 
