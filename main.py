@@ -151,45 +151,47 @@ def api_articles():
 
 def _worker_cycle() -> None:
     """Single poll-filter-store-alert-cleanup cycle."""
-    log.info("─── Poll cycle start ───")
-
-    # 1. Fetch from all feeds
-    articles = news.fetch_all_feeds()
-
-    # 2. Filter & enrich (score, classify, sentiment)
-    relevant = news.filter_and_enrich(articles)
-
-    # 3. Store new articles & collect those that need alerting
     global _last_poll_at
-    # Skip alerts on the very first poll after startup (avoids duplicate mails
-    # when the DB is fresh or when both local and Render start simultaneously)
-    is_first_poll = _last_poll_at is None
-    new_count = 0
-    to_alert: list[dict] = []
-    for article in relevant:
-        was_new = db.insert_article(article)
-        if was_new:
-            new_count += 1
-            if not is_first_poll and article.get("tier", 2) == 1:
-                to_alert.append(article)
+    log.info("─── Poll cycle start ───")
+    try:
+        # 1. Fetch from all feeds
+        articles = news.fetch_all_feeds()
 
-    log.info("Stored %d new articles (%d already existed)", new_count, len(relevant) - new_count)
+        # 2. Filter & enrich (score, classify, sentiment)
+        relevant = news.filter_and_enrich(articles)
 
-    # 4. Send alerts for new articles
-    for article in to_alert:
-        try:
-            summary = news.summarize(article)
-            sent = notifier.send_alert(article, summary)
-            if sent:
-                db.mark_alerted(article["link"])
-        except Exception:
-            log.exception("Alert failed for: %s", article["title"][:60])
+        # 3. Store new articles & collect those that need alerting
+        # Skip alerts on the very first poll after startup (avoids duplicate mails
+        # when the DB is fresh or when both local and Render start simultaneously)
+        is_first_poll = _last_poll_at is None
+        new_count = 0
+        to_alert: list[dict] = []
+        for article in relevant:
+            was_new = db.insert_article(article)
+            if was_new:
+                new_count += 1
+                if not is_first_poll and article.get("tier", 2) == 1:
+                    to_alert.append(article)
 
-    # 5. Cleanup old data
-    db.cleanup_old_articles()
+        log.info("Stored %d new articles (%d already existed)", new_count, len(relevant) - new_count)
 
-    _last_poll_at = datetime.now(timezone.utc)
-    log.info("─── Poll cycle done ───")
+        # 4. Send alerts for new articles
+        for article in to_alert:
+            try:
+                summary = news.summarize(article)
+                sent = notifier.send_alert(article, summary)
+                if sent:
+                    db.mark_alerted(article["link"])
+            except Exception:
+                log.exception("Alert failed for: %s", article["title"][:60])
+
+        # 5. Cleanup old data
+        db.cleanup_old_articles()
+        log.info("─── Poll cycle done ───")
+    except Exception:
+        log.exception("Poll cycle crashed")
+    finally:
+        _last_poll_at = datetime.now(timezone.utc)
 
 
 def background_worker() -> None:

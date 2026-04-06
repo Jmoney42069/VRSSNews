@@ -153,7 +153,14 @@ def fetch_feed(feed_cfg: dict) -> list[dict]:
     articles: list[dict] = []
 
     try:
-        parsed = feedparser.parse(url)
+        import socket
+        old_timeout = socket.getdefaulttimeout()
+        socket.setdefaulttimeout(15)
+        try:
+            parsed = feedparser.parse(url)
+        finally:
+            socket.setdefaulttimeout(old_timeout)
+
         if parsed.bozo and not parsed.entries:
             log.warning("Feed '%s' parse error: %s", name, parsed.bozo_exception)
             return []
