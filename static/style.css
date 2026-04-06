@@ -110,9 +110,9 @@ button,input { -webkit-tap-highlight-color:transparent; }
     align-items: center;
     justify-content: center;
     font-size: 1rem;
-    background: var(--accent);
+    background: var(--surface-alt);
+    border: 1px solid var(--border-hover);
     border-radius: 9px;
-    box-shadow: 0 2px 10px rgba(34,197,94,0.35);
     flex-shrink: 0;
 }
 
@@ -173,9 +173,10 @@ button,input { -webkit-tap-highlight-color:transparent; }
 }
 
 .nav-item.active {
-    background: var(--accent-soft);
-    color: var(--accent);
+    background: rgba(255,255,255,0.07);
+    color: var(--text);
     font-weight: 600;
+    box-shadow: inset 2px 0 0 var(--accent);
 }
 
 .nav-icon { font-size:0.9rem; width:20px; text-align:center; flex-shrink:0; }
@@ -194,8 +195,8 @@ button,input { -webkit-tap-highlight-color:transparent; }
 }
 
 .nav-item.active .nav-count {
-    background: var(--accent-mid);
-    color: var(--accent);
+    background: rgba(255,255,255,0.08);
+    color: var(--text-sub);
 }
 
 /* ── Sidebar stats ── */
@@ -322,9 +323,9 @@ button,input { -webkit-tap-highlight-color:transparent; }
 }
 .search-input::placeholder { color:var(--text-muted); }
 .search-input:focus {
-    border-color: var(--accent);
+    border-color: rgba(255,255,255,0.25);
     background: var(--surface-alt);
-    box-shadow: 0 0 0 3px var(--accent-soft);
+    box-shadow: 0 0 0 3px rgba(255,255,255,0.04);
 }
 
 .search-clear {
@@ -352,11 +353,11 @@ button,input { -webkit-tap-highlight-color:transparent; }
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.09em;
-    color: var(--green);
-    background: var(--green-soft);
+    color: var(--text-muted);
+    background: var(--surface);
     padding: 5px 12px;
     border-radius: var(--radius-pill);
-    border: 1px solid rgba(34,197,94,0.2);
+    border: 1px solid var(--border);
     white-space: nowrap;
 }
 
@@ -410,10 +411,10 @@ button,input { -webkit-tap-highlight-color:transparent; }
     color: var(--text-muted);
 }
 
-/* Alleen het getal krijgt kleur, niet de hele kaart */
+/* Alleen categorie-getallen krijgen kleur */
 .nl-text    { color: var(--nl); }
 .int-text   { color: var(--int); }
-.today-text { color: var(--green); }
+.today-text { color: var(--text); }
 
 /* =============================================================
    CONTENT
@@ -582,7 +583,7 @@ button,input { -webkit-tap-highlight-color:transparent; }
     letter-spacing: -0.01em;
 }
 .card-title a { transition: color var(--t); }
-.card-title a:hover { color: var(--accent); }
+.card-title a:hover { color: var(--text); text-decoration: underline; text-decoration-color: rgba(255,255,255,0.2); }
 
 .card-summary {
     font-size: 0.78rem;
@@ -617,11 +618,11 @@ button,input { -webkit-tap-highlight-color:transparent; }
     white-space: nowrap;
 }
 
-/* Score tag krijgt groen — dat is het enige prominente groen in de cards */
 .tag-score {
-    background: var(--accent-soft);
-    color: var(--accent);
+    background: var(--surface-alt);
+    color: var(--text-sub);
     font-family: var(--mono);
+    border: 1px solid var(--border);
 }
 
 .tag-sentiment {
@@ -644,9 +645,9 @@ button,input { -webkit-tap-highlight-color:transparent; }
     transition: all var(--t);
 }
 .tag-topic:hover {
-    background: var(--accent-soft);
-    color: var(--accent);
-    border-color: rgba(34,197,94,0.25);
+    background: rgba(255,255,255,0.07);
+    color: var(--text);
+    border-color: var(--border-hover);
 }
 
 /* Empty state */
