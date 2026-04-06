@@ -284,6 +284,11 @@ def send_alert(article: dict, summary: str) -> bool:
     Returns True if at least one channel succeeded.
     Respects rate limiting.
     """
+    # Guard: only send when explicitly enabled (prevents local dev from sending)
+    if os.getenv("ALERTS_ENABLED", "").lower() != "true":
+        log.debug("Alerts disabled (ALERTS_ENABLED != true) — skipping: %s", article["title"][:60])
+        return False
+
     # Only email high priority (tier 1) articles
     if article.get("tier", 2) != 1:
         log.debug("Skipping alert — not tier 1: %s", article["title"][:60])

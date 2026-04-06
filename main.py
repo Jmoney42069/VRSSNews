@@ -11,7 +11,7 @@ import logging
 import threading
 from datetime import datetime, timezone, timedelta
 
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, make_response
 from dotenv import load_dotenv
 
 import db
@@ -94,7 +94,7 @@ def index():
     # Collect unique active sources
     sources = sorted({a["source"] for a in articles if a.get("source")})
 
-    return render_template(
+    resp = make_response(render_template(
         "index.html",
         nl_articles=nl_articles,
         int_articles=int_articles,
@@ -109,7 +109,10 @@ def index():
         last_updated=_last_poll_at.strftime("%H:%M UTC") if _last_poll_at else "nog niet",
         today_count=today_count,
         today_str=today_str,
-    )
+    ))
+    resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate"
+    resp.headers["Pragma"] = "no-cache"
+    return resp
 
 
 @app.route("/api/status")
