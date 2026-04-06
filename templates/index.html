@@ -1,52 +1,76 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="nl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Energy News Tracker — Real-time Monitoring</title>
+    <title>Voltera News Tracker — Energie Nieuws Dashboard</title>
     <meta http-equiv="refresh" content="60">
     <link rel="stylesheet" href="/static/style.css">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
 </head>
 <body>
 
-    <!-- ── Sidebar ── -->
+    <!-- ── Zijbalk ── -->
     <aside class="sidebar">
         <div class="sidebar-brand">
             <div class="brand-icon">⚡</div>
             <div class="brand-text">
-                <span class="brand-name">EnergyTracker</span>
-                <span class="brand-sub">News Intelligence</span>
+                <span class="brand-name">Voltera</span>
+                <span class="brand-sub">News Tracker</span>
             </div>
         </div>
 
         <nav class="sidebar-nav">
-            <div class="nav-label">Feed</div>
-            <a href="/" class="nav-item {% if not cat_filter %}active{% endif %}">
+            <div class="nav-label">Weergave</div>
+            <a href="/" class="nav-item {% if not cat_filter and not topic_filter %}active{% endif %}">
                 <span class="nav-icon">📊</span>
-                <span>All Articles</span>
+                <span>Alle artikelen</span>
                 <span class="nav-count">{{ counts.get('total', 0) }}</span>
             </a>
-            <a href="/?cat=NL{% if search %}&q={{ search }}{% endif %}" class="nav-item {% if cat_filter == 'NL' %}active{% endif %}">
+            <a href="/?cat=NL{% if search %}&q={{ search }}{% endif %}" class="nav-item {% if cat_filter == 'NL' and not topic_filter %}active{% endif %}">
                 <span class="nav-icon">🇳🇱</span>
-                <span>Netherlands</span>
+                <span>Nederland</span>
                 <span class="nav-count">{{ counts.get('NL', 0) }}</span>
             </a>
-            <a href="/?cat=INT{% if search %}&q={{ search }}{% endif %}" class="nav-item {% if cat_filter == 'INT' %}active{% endif %}">
+            <a href="/?cat=INT{% if search %}&q={{ search }}{% endif %}" class="nav-item {% if cat_filter == 'INT' and not topic_filter %}active{% endif %}">
                 <span class="nav-icon">🌍</span>
-                <span>International</span>
+                <span>Internationaal</span>
                 <span class="nav-count">{{ counts.get('INT', 0) }}</span>
             </a>
         </nav>
 
+        <nav class="sidebar-nav">
+            <div class="nav-label">Onderwerp</div>
+            {% set topic_icons = {
+                'Zonnepanelen': '☀️',
+                'Thuisbatterijen': '🔋',
+                'Netcongestie': '⚡',
+                'Warmtepompen': '♨️',
+                'Energieprijzen': '📈',
+                'Energiebeheer': '🔌',
+                'Markt & Beleid': '🏛️',
+                'Algemeen': '📰'
+            } %}
+            {% for t in all_topics %}
+            {% set cnt = topic_counts.get(t, 0) %}
+            {% if cnt > 0 %}
+            <a href="/?topic={{ t }}{% if search %}&q={{ search }}{% endif %}" class="nav-item {% if topic_filter == t %}active{% endif %}">
+                <span class="nav-icon">{{ topic_icons.get(t, '📰') }}</span>
+                <span>{{ t }}</span>
+                <span class="nav-count">{{ cnt }}</span>
+            </a>
+            {% endif %}
+            {% endfor %}
+        </nav>
+
         <div class="sidebar-stats">
-            <div class="nav-label">System Status</div>
+            <div class="nav-label">Systeemstatus</div>
             <div class="stat-row">
                 <span class="stat-dot live"></span>
-                <span>Live — polling active</span>
+                <span>Live — polling actief</span>
             </div>
             <div class="stat-row">
-                <span class="stat-label">Sources</span>
+                <span class="stat-label">Bronnen</span>
                 <span class="stat-value">{{ total_feeds }} feeds</span>
             </div>
             <div class="stat-row">
@@ -54,20 +78,20 @@
                 <span class="stat-value">5 min</span>
             </div>
             <div class="stat-row">
-                <span class="stat-label">Retention</span>
-                <span class="stat-value">7 days</span>
+                <span class="stat-label">Bewaring</span>
+                <span class="stat-value">7 dagen</span>
             </div>
             <div class="stat-row">
-                <span class="stat-label">Updated</span>
+                <span class="stat-label">Bijgewerkt</span>
                 <span class="stat-value">{{ last_updated }}</span>
             </div>
         </div>
     </aside>
 
-    <!-- ── Main content ── -->
+    <!-- ── Hoofdinhoud ── -->
     <div class="main-wrapper">
 
-        <!-- Top bar -->
+        <!-- Topbalk -->
         <header class="topbar">
             <button class="mobile-menu-btn" onclick="document.body.classList.toggle('sidebar-open')" aria-label="Menu">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
@@ -78,16 +102,15 @@
                 <input
                     type="text"
                     name="q"
-                    placeholder="Search articles, keywords, sources..."
+                    placeholder="Zoek artikelen, trefwoorden, bronnen..."
                     value="{{ search }}"
                     class="search-input"
                     autocomplete="off"
                 >
-                {% if cat_filter %}
-                    <input type="hidden" name="cat" value="{{ cat_filter }}">
-                {% endif %}
+                {% if cat_filter %}<input type="hidden" name="cat" value="{{ cat_filter }}">{% endif %}
+                {% if topic_filter %}<input type="hidden" name="topic" value="{{ topic_filter }}">{% endif %}
                 {% if search %}
-                    <a href="/{% if cat_filter %}?cat={{ cat_filter }}{% endif %}" class="search-clear" title="Clear search">&times;</a>
+                    <a href="/{% if cat_filter %}?cat={{ cat_filter }}{% elif topic_filter %}?topic={{ topic_filter }}{% endif %}" class="search-clear" title="Zoekopdracht wissen">&times;</a>
                 {% endif %}
             </form>
 
@@ -96,33 +119,41 @@
             </div>
         </header>
 
-        <!-- Dashboard metrics -->
+        <!-- KPI-balk -->
         <div class="metrics-bar">
             <div class="metric">
                 <span class="metric-value">{{ counts.get('total', 0) }}</span>
-                <span class="metric-label">Total Articles</span>
+                <span class="metric-label">Totaal artikelen</span>
             </div>
             <div class="metric">
                 <span class="metric-value nl-text">{{ counts.get('NL', 0) }}</span>
-                <span class="metric-label">Netherlands</span>
+                <span class="metric-label">Nederland</span>
             </div>
             <div class="metric">
                 <span class="metric-value int-text">{{ counts.get('INT', 0) }}</span>
-                <span class="metric-label">International</span>
+                <span class="metric-label">Internationaal</span>
             </div>
             <div class="metric">
                 <span class="metric-value">{{ sources|length }}</span>
-                <span class="metric-label">Active Sources</span>
+                <span class="metric-label">Actieve bronnen</span>
             </div>
         </div>
 
-        <!-- Article feed -->
+        <!-- Artikelstroom -->
         <main class="content">
 
             {% if search %}
             <div class="search-status">
-                Showing results for <strong>"{{ search }}"</strong>
-                — {{ nl_articles|length + int_articles|length }} articles found
+                Resultaten voor <strong>"{{ search }}"</strong>
+                — {{ nl_articles|length + int_articles|length }} artikel(en) gevonden
+            </div>
+            {% endif %}
+
+            {% if topic_filter %}
+            <div class="search-status">
+                Onderwerp: <strong>{{ topic_filter }}</strong>
+                — {{ nl_articles|length + int_articles|length }} artikel(en) gevonden
+                &nbsp;<a href="/" class="search-clear-link">× Wis filter</a>
             </div>
             {% endif %}
 
@@ -130,13 +161,13 @@
             {% if nl_articles %}
             <section class="feed-section">
                 <div class="section-header">
-                    <h2><span class="section-flag">🇳🇱</span> Netherlands</h2>
-                    <span class="section-count">{{ nl_articles|length }} articles</span>
+                    <h2><span class="section-flag">🇳🇱</span> Nederland</h2>
+                    <span class="section-count">{{ nl_articles|length }} artikel(en)</span>
                 </div>
                 <div class="card-grid">
                 {% for a in nl_articles %}
                     <article class="card {% if a.tier == 1 %}card-tier1{% elif a.tier == 3 %}card-tier3{% endif %}">
-                        {% if a.tier == 1 %}<div class="tier-badge">HIGH PRIORITY</div>{% endif %}
+                        {% if a.tier == 1 %}<div class="tier-badge">HOGE PRIORITEIT</div>{% endif %}
                         <div class="card-top">
                             <span class="card-source">{{ a.source }}</span>
                             <time class="card-time">{{ a.time_ago }}</time>
@@ -147,8 +178,11 @@
                         <p class="card-summary">{{ a.summary[:220] }}{% if a.summary|length > 220 %}…{% endif %}</p>
                         <div class="card-meta">
                             <div class="meta-left">
-                                <span class="tag tag-score" title="Relevance score">{{ a.score }} pts</span>
+                                <span class="tag tag-score" title="Relevantiescore">{{ a.score }} pts</span>
                                 <span class="tag tag-sentiment">{{ a.sentiment }}</span>
+                                {% if a.topic %}
+                                <a href="/?topic={{ a.topic }}" class="tag tag-topic">{{ a.topic }}</a>
+                                {% endif %}
                             </div>
                             {% if a.keywords %}
                             <div class="card-keywords">
@@ -169,13 +203,13 @@
             {% if int_articles %}
             <section class="feed-section">
                 <div class="section-header">
-                    <h2><span class="section-flag">🌍</span> International</h2>
-                    <span class="section-count">{{ int_articles|length }} articles</span>
+                    <h2><span class="section-flag">🌍</span> Internationaal</h2>
+                    <span class="section-count">{{ int_articles|length }} artikel(en)</span>
                 </div>
                 <div class="card-grid">
                 {% for a in int_articles %}
                     <article class="card {% if a.tier == 1 %}card-tier1{% elif a.tier == 3 %}card-tier3{% endif %}">
-                        {% if a.tier == 1 %}<div class="tier-badge">HIGH PRIORITY</div>{% endif %}
+                        {% if a.tier == 1 %}<div class="tier-badge">HOGE PRIORITEIT</div>{% endif %}
                         <div class="card-top">
                             <span class="card-source">{{ a.source }}</span>
                             <time class="card-time">{{ a.time_ago }}</time>
@@ -186,8 +220,11 @@
                         <p class="card-summary">{{ a.summary[:220] }}{% if a.summary|length > 220 %}…{% endif %}</p>
                         <div class="card-meta">
                             <div class="meta-left">
-                                <span class="tag tag-score" title="Relevance score">{{ a.score }} pts</span>
+                                <span class="tag tag-score" title="Relevantiescore">{{ a.score }} pts</span>
                                 <span class="tag tag-sentiment">{{ a.sentiment }}</span>
+                                {% if a.topic %}
+                                <a href="/?topic={{ a.topic }}" class="tag tag-topic">{{ a.topic }}</a>
+                                {% endif %}
                             </div>
                             {% if a.keywords %}
                             <div class="card-keywords">
@@ -207,23 +244,23 @@
             {% if not nl_articles and not int_articles %}
             <div class="empty-state">
                 <div class="empty-icon">📡</div>
-                <h3>No articles found</h3>
-                <p>{% if search %}No results for "{{ search }}". Try a different search term.{% else %}Waiting for the first poll cycle to complete...{% endif %}</p>
+                <h3>Geen artikelen gevonden</h3>
+                <p>{% if search %}Geen resultaten voor "{{ search }}". Probeer een andere zoekterm.{% elif topic_filter %}Nog geen artikelen voor dit onderwerp.{% else %}Wachten op de eerste polling-cyclus…{% endif %}</p>
             </div>
             {% endif %}
 
         </main>
 
         <footer class="footer">
-            <span>EnergyTracker v1.0</span>
+            <span>Voltera News Tracker v1.0</span>
             <span class="footer-sep">·</span>
-            <span>Auto-refreshes every 60s</span>
+            <span>Ververst elke 60s</span>
             <span class="footer-sep">·</span>
-            <span>Data retained 7 days</span>
+            <span>Data bewaard 7 dagen</span>
         </footer>
     </div>
 
-    <!-- Mobile overlay -->
+    <!-- Mobiel overlay -->
     <div class="sidebar-overlay" onclick="document.body.classList.remove('sidebar-open')"></div>
 
 </body>

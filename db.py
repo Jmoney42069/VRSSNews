@@ -49,6 +49,7 @@ def init_db() -> None:
                 keywords    TEXT    DEFAULT '',
                 sentiment   TEXT    DEFAULT '',
                 tier        INTEGER DEFAULT 2,
+                topic       TEXT    DEFAULT '',
                 alerted     INTEGER DEFAULT 0,
                 created_at  TEXT    NOT NULL
             )
@@ -61,6 +62,12 @@ def init_db() -> None:
             CREATE INDEX IF NOT EXISTS idx_articles_category
             ON articles (category)
         """)
+        # Migration: add topic column to existing databases
+        try:
+            conn.execute("ALTER TABLE articles ADD COLUMN topic TEXT DEFAULT ''")
+            log.info("Migrated: added topic column to articles table")
+        except Exception:
+            pass  # column already exists
     log.info("Database initialised at %s", DB_PATH)
 
 
@@ -88,8 +95,8 @@ def insert_article(article: dict) -> bool:
             conn.execute(
                 """INSERT INTO articles
                    (title, link, summary, source, category, score, keywords,
-                    sentiment, tier, alerted, created_at)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?)""",
+                    sentiment, tier, topic, alerted, created_at)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?)""",
                 (
                     article["title"],
                     article["link"],
@@ -100,6 +107,7 @@ def insert_article(article: dict) -> bool:
                     article.get("keywords", ""),
                     article.get("sentiment", ""),
                     article.get("tier", 2),
+                    article.get("topic", ""),
                     now,
                 ),
             )
@@ -128,11 +136,12 @@ def get_unalerted_articles() -> list[dict]:
 def get_recent_articles(
     category: str | None = None,
     search: str | None = None,
+    topic: str | None = None,
     limit: int = 200,
 ) -> list[dict]:
     """
     Return articles from the last 7 days for the dashboard.
-    Optionally filter by category and/or search term.
+    Optionally filter by category, search term, and/or topic.
     """
     cutoff = (datetime.now(timezone.utc) - timedelta(days=RETENTION_DAYS)).isoformat()
     query = "SELECT * FROM articles WHERE created_at > ?"
@@ -148,12 +157,29 @@ def get_recent_articles(
         params.append(term)
         params.append(term)
 
+    if topic:
+        query += " AND topic = ?"
+        params.append(topic)
+
     query += " ORDER BY created_at DESC LIMIT ?"
     params.append(limit)
 
     with get_connection() as conn:
         rows = conn.execute(query, params).fetchall()
         return [dict(r) for r in rows]
+
+
+def get_topic_counts() -> dict:
+    """Return article counts per topic for the last 7 days."""
+    cutoff = (datetime.now(timezone.utc) - timedelta(days=RETENTION_DAYS)).isoformat()
+    with get_connection() as conn:
+        rows = conn.execute(
+            """SELECT topic, COUNT(*) as cnt FROM articles
+               WHERE created_at > ? AND topic != ''
+               GROUP BY topic ORDER BY cnt DESC""",
+            (cutoff,),
+        ).fetchall()
+        return {r["topic"]: r["cnt"] for r in rows}
 
 
 def get_article_count() -> dict:

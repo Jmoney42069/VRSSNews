@@ -174,6 +174,34 @@ def fetch_all_feeds() -> list[dict]:
 
 
 # ---------------------------------------------------------------------------
+# Topic classification
+# ---------------------------------------------------------------------------
+
+# Topics in priority order — first match wins
+TOPICS: list[tuple[str, list[str]]] = [
+    ("Zonnepanelen",   ["zonnepanelen", "solar", "pv", "salderingsregeling", "teruglevering", "net metering", "rooftop solar", "plug-in solar"]),
+    ("Thuisbatterijen", ["batterij", "battery storage", "battery", "thuisbatterij", "home battery", "opslag"]),
+    ("Netcongestie",   ["netcongestie", "grid congestion", "congestie", "net vol", "netverzwaring"]),
+    ("Warmtepompen",   ["warmtepomp", "heat pump", "wp"]),
+    ("Energieprijzen", ["energieprijs", "energy price", "dynamisch tarief", "stroomprijs", "gasprijs", "gas price", "electricity price"]),
+    ("Energiebeheer",  ["ems", "energy management system", "energy management", "smart grid", "vrm", "onbalansmarkt"]),
+    ("Markt & Beleid", ["installateur", "energiebedrijf", "subsidie", "beleid", "wet", "regelgeving", "renewable", "wind", "offshore"]),
+]
+
+TOPIC_LABELS_NL = {t[0]: t[0] for t in TOPICS}
+
+
+def detect_topic(matched_keywords: list[str], title: str, summary: str) -> str:
+    """Assign the most relevant topic based on matched keywords + text."""
+    text = f"{title} {summary}".lower()
+    for topic, indicators in TOPICS:
+        for ind in indicators:
+            if ind in text:
+                return topic
+    return "Algemeen"
+
+
+# ---------------------------------------------------------------------------
 # Scoring & filtering
 # ---------------------------------------------------------------------------
 
@@ -202,15 +230,15 @@ def classify(article: dict) -> str:
 
 
 def detect_sentiment(article: dict) -> str:
-    """Simple rule-based sentiment: Positive / Negative / Neutral."""
+    """Simple rule-based sentiment: Positief / Negatief / Neutraal."""
     text = f"{article['title']} {article['summary']}".lower()
     pos = sum(1 for w in POSITIVE_WORDS if w in text)
     neg = sum(1 for w in NEGATIVE_WORDS if w in text)
     if pos > neg:
-        return "📈 Positive"
+        return "📈 Positief"
     if neg > pos:
-        return "📉 Negative"
-    return "➡️ Neutral"
+        return "📉 Negatief"
+    return "➡️ Neutraal"
 
 
 def filter_and_enrich(articles: list[dict]) -> list[dict]:
@@ -224,11 +252,16 @@ def filter_and_enrich(articles: list[dict]) -> list[dict]:
         article["keywords"] = ", ".join(matched)
         article["category"] = classify(article)
         article["sentiment"] = detect_sentiment(article)
+        article["topic"] = detect_topic(matched, article["title"], article.get("summary", ""))
         relevant.append(article)
 
     relevant.sort(key=lambda a: a["score"], reverse=True)
     log.info("Relevant articles after filtering: %d", len(relevant))
     return relevant
+
+
+# List of all topic names for the UI
+ALL_TOPICS = [t[0] for t in TOPICS] + ["Algemeen"]
 
 
 # ---------------------------------------------------------------------------

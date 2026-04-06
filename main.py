@@ -41,7 +41,7 @@ app = Flask(__name__)
 
 
 def _time_ago(iso_str: str) -> str:
-    """Convert an ISO timestamp to a human-readable 'time ago' string."""
+    """Convert an ISO timestamp to a Dutch human-readable 'time ago' string."""
     try:
         dt = datetime.fromisoformat(iso_str)
         if dt.tzinfo is None:
@@ -49,27 +49,32 @@ def _time_ago(iso_str: str) -> str:
         delta = datetime.now(timezone.utc) - dt
         seconds = int(delta.total_seconds())
         if seconds < 60:
-            return "just now"
+            return "zojuist"
         if seconds < 3600:
             m = seconds // 60
-            return f"{m}m ago"
+            return f"{m}m geleden"
         if seconds < 86400:
             h = seconds // 3600
-            return f"{h}h ago"
+            return f"{h}u geleden"
         d = seconds // 86400
-        return f"{d}d ago"
+        return f"{d}d geleden"
     except Exception:
         return ""
 
 
 @app.route("/")
 def index():
-    """Dashboard — shows all articles from the last 7 days."""
+    """Dashboard — toont alle artikelen van de afgelopen 7 dagen."""
     search = request.args.get("q", "").strip()
     cat_filter = request.args.get("cat", "").strip().upper()
+    topic_filter = request.args.get("topic", "").strip()
 
     category = cat_filter if cat_filter in ("NL", "INT") else None
-    articles = db.get_recent_articles(category=category, search=search or None)
+    articles = db.get_recent_articles(
+        category=category,
+        search=search or None,
+        topic=topic_filter or None,
+    )
 
     # Split into NL / INT
     nl_articles = [a for a in articles if a["category"] == "NL"]
@@ -80,6 +85,7 @@ def index():
         a["time_ago"] = _time_ago(a["created_at"])
 
     counts = db.get_article_count()
+    topic_counts = db.get_topic_counts()
 
     # Collect unique active sources
     sources = sorted({a["source"] for a in articles if a.get("source")})
@@ -91,6 +97,9 @@ def index():
         counts=counts,
         search=search,
         cat_filter=cat_filter,
+        topic_filter=topic_filter,
+        topic_counts=topic_counts,
+        all_topics=news.ALL_TOPICS,
         sources=sources,
         total_feeds=len(news.RSS_FEEDS),
         last_updated=datetime.now(timezone.utc).strftime("%H:%M UTC"),
