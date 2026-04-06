@@ -177,12 +177,25 @@ def send_whatsapp(message: str) -> bool:
 # ---------------------------------------------------------------------------
 
 
+def _any_channel_configured() -> bool:
+    """Return True if at least one notification channel has credentials set."""
+    return bool(
+        (os.getenv("TELEGRAM_TOKEN") and os.getenv("TELEGRAM_CHAT_ID"))
+        or (os.getenv("EMAIL_USER") and os.getenv("EMAIL_PASS"))
+        or (os.getenv("TWILIO_SID") and os.getenv("TWILIO_AUTH"))
+    )
+
+
 def send_alert(article: dict, summary: str) -> bool:
     """
     Format and send an alert through all configured channels.
     Returns True if at least one channel succeeded.
     Respects rate limiting.
     """
+    if not _any_channel_configured():
+        log.debug("No notification channels configured — skipping alert for: %s", article["title"][:60])
+        return False
+
     if not _rate_limiter.allow():
         log.warning("Rate limit reached — skipping alert for: %s", article["title"][:60])
         return False
