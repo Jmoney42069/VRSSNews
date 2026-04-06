@@ -194,10 +194,12 @@ def get_topic_counts() -> dict:
 
 
 def get_article_count() -> dict:
-    """Return article counts by category."""
+    """Return article counts by category for the last 7 days."""
+    cutoff = (datetime.now(timezone.utc) - timedelta(days=RETENTION_DAYS)).isoformat()
     with get_connection() as conn:
         rows = conn.execute(
-            "SELECT category, COUNT(*) as cnt FROM articles GROUP BY category"
+            "SELECT category, COUNT(*) as cnt FROM articles WHERE created_at > ? GROUP BY category",
+            (cutoff,),
         ).fetchall()
         counts = {r["category"]: r["cnt"] for r in rows}
         counts["total"] = sum(counts.values())
