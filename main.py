@@ -9,7 +9,7 @@ import os
 import time
 import logging
 import threading
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 from flask import Flask, render_template, request, jsonify
 from dotenv import load_dotenv
@@ -44,23 +44,22 @@ app = Flask(__name__)
 
 
 def _time_ago(iso_str: str) -> str:
-    """Convert an ISO timestamp to a Dutch human-readable 'time ago' string."""
+    """Convert an ISO timestamp to a Dutch date/time string."""
+    _NL_MONTHS = ["jan","feb","mrt","apr","mei","jun","jul","aug","sep","okt","nov","dec"]
     try:
         dt = datetime.fromisoformat(iso_str)
         if dt.tzinfo is None:
             dt = dt.replace(tzinfo=timezone.utc)
-        delta = datetime.now(timezone.utc) - dt
-        seconds = int(delta.total_seconds())
-        if seconds < 60:
-            return "zojuist"
-        if seconds < 3600:
-            m = seconds // 60
-            return f"{m}m geleden"
-        if seconds < 86400:
-            h = seconds // 3600
-            return f"{h}u geleden"
-        d = seconds // 86400
-        return f"{d}d geleden"
+        now = datetime.now(timezone.utc)
+        today = now.date()
+        yesterday = (now - timedelta(days=1)).date()
+        d = dt.date()
+        hhmm = dt.strftime("%H:%M")
+        if d == today:
+            return f"Vandaag {hhmm}"
+        if d == yesterday:
+            return f"Gisteren {hhmm}"
+        return f"{d.day} {_NL_MONTHS[d.month - 1]}"
     except Exception:
         return ""
 
