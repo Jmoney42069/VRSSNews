@@ -135,7 +135,7 @@ def get_unalerted_articles() -> list[dict]:
         rows = conn.execute(
             """SELECT * FROM articles
                WHERE alerted = 0
-               ORDER BY created_at DESC"""
+               ORDER BY COALESCE(NULLIF(published_at,''), created_at) DESC"""
         ).fetchall()
         return [dict(r) for r in rows]
 
@@ -168,7 +168,7 @@ def get_recent_articles(
         query += " AND topic = ?"
         params.append(topic)
 
-    query += " ORDER BY created_at DESC LIMIT ?"
+    query += " ORDER BY COALESCE(NULLIF(published_at,''), created_at) DESC LIMIT ?"
     params.append(limit)
 
     with get_connection() as conn:
