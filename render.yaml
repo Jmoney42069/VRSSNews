@@ -15,9 +15,13 @@ services:
         sync: false
       - key: TELEGRAM_CHAT_ID
         sync: false
-      - key: EMAIL_USER
+      - key: GMAIL_USER
         sync: false
-      - key: EMAIL_PASS
+      - key: GMAIL_APP_PASSWORD
         sync: false
+      - key: EMAIL_TO
+        sync: false
+      - key: ALERTS_ENABLED
+        value: "true"
       - key: OPENAI_API_KEY
         sync: false
