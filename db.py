@@ -74,7 +74,32 @@ def init_db() -> None:
             log.info("Migrated: added published_at column to articles table")
         except Exception:
             pass  # column already exists
+
+        # Meta table for persistent key-value state (survives restarts)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS meta (
+                key   TEXT PRIMARY KEY,
+                value TEXT NOT NULL
+            )
+        """)
     log.info("Database initialised at %s", DB_PATH)
+
+
+def get_meta(key: str) -> str | None:
+    """Read a value from the meta table."""
+    with get_connection() as conn:
+        row = conn.execute("SELECT value FROM meta WHERE key = ?", (key,)).fetchone()
+        return row["value"] if row else None
+
+
+def set_meta(key: str, value: str) -> None:
+    """Write a value to the meta table (upsert)."""
+    with get_connection() as conn:
+        conn.execute(
+            "INSERT INTO meta (key, value) VALUES (?, ?) "
+            "ON CONFLICT(key) DO UPDATE SET value = excluded.value",
+            (key, value),
+        )
 
 
 def link_exists(link: str) -> bool:

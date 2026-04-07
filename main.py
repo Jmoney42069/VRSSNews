@@ -33,7 +33,7 @@ log = logging.getLogger("energy-tracker")
 
 POLL_INTERVAL = int(os.getenv("POLL_INTERVAL", "300"))
 
-# Last successful poll timestamp (updated by background worker)
+# Last successful poll timestamp — loaded from DB on startup, persisted after each cycle
 _last_poll_at: datetime | None = None
 
 # ---------------------------------------------------------------------------
@@ -192,6 +192,7 @@ def _worker_cycle() -> None:
         log.exception("Poll cycle crashed")
     finally:
         _last_poll_at = datetime.now(timezone.utc)
+        db.set_meta("last_poll_at", _last_poll_at.isoformat())
 
 
 def background_worker() -> None:
@@ -232,13 +233,22 @@ def _backfill_topics() -> None:
 
 def _ensure_started():
     """Initialise DB and start background worker (once)."""
-    global _worker_started
+    global _worker_started, _last_poll_at
     if _worker_started:
         return
     _worker_started = True
 
     db.init_db()
     _backfill_topics()
+
+    # Restore last poll time from DB so /api/status survives restarts
+    stored = db.get_meta("last_poll_at")
+    if stored:
+        try:
+            _last_poll_at = datetime.fromisoformat(stored)
+            log.info("Restored last_poll_at from DB: %s", stored)
+        except Exception:
+            pass
 
     log.info("=" * 60)
     log.info("⚡ Energy News Tracker")
