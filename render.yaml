@@ -25,3 +25,5 @@ services:
         value: "true"
       - key: OPENAI_API_KEY
         sync: false
+      - key: DIGEST_SECRET
+        sync: false

@@ -136,6 +136,27 @@ def api_status():
     })
 
 
+@app.route("/api/send-digest")
+def api_send_digest():
+    """Trigger the digest email immediately. Protected by DIGEST_SECRET env var."""
+    secret = os.getenv("DIGEST_SECRET", "")
+    if not secret or request.args.get("key") != secret:
+        return jsonify({"error": "unauthorized"}), 401
+    from datetime import date as _date
+    _NL_MONTHS = ["jan","feb","mrt","apr","mei","jun","jul","aug","sep","okt","nov","dec"]
+    now_ams   = datetime.now(_AMS)
+    until_ams = now_ams.replace(minute=0, second=0, microsecond=0)
+    since_ams = until_ams - timedelta(hours=24)
+    since_utc = since_ams.astimezone(timezone.utc).isoformat()
+    until_utc = until_ams.astimezone(timezone.utc).isoformat()
+    articles = db.get_digest_articles(since_utc, until_utc)
+    since_label  = f"{since_ams.day} {_NL_MONTHS[since_ams.month-1]} {since_ams.year} {since_ams.strftime('%H:%M')}"
+    until_label  = f"{until_ams.day} {_NL_MONTHS[until_ams.month-1]} {until_ams.year} {until_ams.strftime('%H:%M')}"
+    period_label = f"{since_label} – {until_label}"
+    sent = notifier.send_digest_email(articles, period_label)
+    return jsonify({"sent": sent, "articles": len(articles), "period": period_label})
+
+
 @app.route("/api/articles")
 def api_articles():
     """JSON API — return all recent articles."""
