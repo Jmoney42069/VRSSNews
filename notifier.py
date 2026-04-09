@@ -432,10 +432,31 @@ def send_digest_email(articles: list[dict], period_label: str, intro: str = "") 
         paragraphs = [p.strip() for p in clean.split("\n\n") if p.strip()]
         p_style = "font-size:14px;color:#1a3a24;line-height:1.8;margin:0 0 10px;"
         intro_html = "".join(f'<p style="{p_style}">{_html.escape(p, quote=False).replace(chr(10), "<br>")}</p>' for p in paragraphs)
+
+        # Build sources list — NL first, then INT, top 15 by score
+        source_articles = sorted(articles, key=lambda a: (0 if a.get("category") == "NL" else 1, -a.get("score", 0)))[:15]
+        source_items = ""
+        for i, a in enumerate(source_articles, 1):
+            t    = _html.escape(a.get("title", ""))
+            href = _html.escape(a.get("link", "#"), quote=True)
+            src  = _html.escape(a.get("source", ""))
+            flag = "🇳🇱" if a.get("category") == "NL" else "🌍"
+            source_items += (
+                f'<div style="padding:6px 0;border-bottom:1px solid #d1fae5;">'
+                f'<span style="font-size:11px;color:#9ca3af;margin-right:6px;">{i}.</span>'
+                f'<a href="{href}" style="font-size:13px;font-weight:600;color:#166534;text-decoration:none;">{t}</a>'
+                f'<span style="font-size:11px;color:#9ca3af;margin-left:8px;">{flag} {src}</span>'
+                f'</div>'
+            )
+
         intro_block = f"""\
       <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:20px 24px;margin-bottom:28px;">
         <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#16a34a;margin-bottom:12px;">🤖 AI Samenvatting — Relevant voor Voltera</div>
         {intro_html}
+        <div style="margin-top:16px;padding-top:14px;border-top:1px solid #bbf7d0;">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#16a34a;margin-bottom:8px;">📎 Bronnen gebruikt voor deze samenvatting</div>
+          {source_items}
+        </div>
       </div>"""
 
     subject = f"📋 Dagelijkse Energie Digest — {period_label}"
