@@ -342,9 +342,10 @@ def generate_digest_intro(articles: list[dict]) -> str:
     if not api_key or not articles:
         return ""
 
-    # Build a compact feed of titles + one-liner summaries for the prompt
+    # Build a compact feed — NL articles first, then INT, capped at 40
+    sorted_articles = sorted(articles, key=lambda a: 0 if a.get("category") == "NL" else 1)
     lines: list[str] = []
-    for a in articles[:40]:  # cap at 40 to stay within context
+    for a in sorted_articles[:40]:  # cap at 40 to stay within context
         title   = a.get("title", "")
         summary = (a.get("summary") or "")[:200].replace("\n", " ")
         cat     = "NL" if a.get("category") == "NL" else "INT"
@@ -352,19 +353,28 @@ def generate_digest_intro(articles: list[dict]) -> str:
     feed = "\n".join(lines)
 
     prompt = (
-        "Je bent een energie-markt analist voor Voltera, een Nederlands bedrijf "
-        "in zonnepanelen, thuisbatterijen en warmtepompen.\n\n"
-        "Hieronder staan de energie-nieuwsartikelen van de afgelopen 24 uur. "
-        "Schrijf een beknopte Nederlandse samenvatting (maximaal 120 woorden) "
-        "van de MEEST RELEVANTE ontwikkelingen voor Voltera. Focus op:\n"
-        "- Energieprijzen en marktbewegingen\n"
-        "- Zonnepanelen (subsidies, saldering, installaties)\n"
-        "- Thuisbatterijen en opslag\n"
-        "- Warmtepompen\n"
-        "- Netcongestie en regelgeving die klanten raakt\n\n"
-        "Schrijf in de verleden tijd, zakelijk maar leesbaar. Geen bullet points, "
-        "gewoon lopende tekst. Sluit af met één zin over de algemene toon "
-        "(positief/neutraal/negatief voor de branche).\n\n"
+        "Je bent een senior energie-analist voor Voltera, een Nederlands bedrijf "
+        "dat zonnepanelen, thuisbatterijen en warmtepompen installeert bij particulieren "
+        "en bedrijven. Voltera opereert volledig in de Nederlandse markt en richt zich "
+        "op de energietransitie en verduurzaming.\n\n"
+        "Analyseer de onderstaande nieuwsartikelen van de afgelopen 24 uur en schrijf "
+        "een uitgebreide Nederlandse managementsamenvatting van 200-250 woorden. "
+        "Structureer de samenvatting in deze volgorde:\n\n"
+        "1. **Nederlandse markt & beleid** — Wat verandert er in wet- en regelgeving, "
+        "subsidies, salderingsregeling, netcongestie of overheidsbeleid dat direct "
+        "invloed heeft op Voltera's klanten of installaties?\n\n"
+        "2. **Energieprijzen & marktbewegingen** — Hoe ontwikkelen stroom- en gasprijzen "
+        "zich? Wat is de impact op consumenten met zonnepanelen, thuisbatterijen of "
+        "warmtepompen?\n\n"
+        "3. **Technologie & producten** — Relevante ontwikkelingen op het gebied van "
+        "zonnepanelen, thuisbatterijen, warmtepompen, omvormers of energiebeheer "
+        "die kansen of risico's betekenen voor Voltera.\n\n"
+        "4. **Internationale signalen** — Internationale trends die de Nederlandse markt "
+        "op korte termijn kunnen beïnvloeden (prijzen, beschikbaarheid, beleid EU).\n\n"
+        "Sluit af met één zin: **Algemene toon voor de verduurzamingsbranche vandaag:** "
+        "gevolgd door een korte beoordeling.\n\n"
+        "Schrijf zakelijk, direct en actiegericht. Gebruik vetgedrukte koppen per blok. "
+        "Geen opsommingstekens, maar lopende tekst per blok.\n\n"
         f"Artikelen:\n{feed}"
     )
 
@@ -380,7 +390,7 @@ def generate_digest_intro(articles: list[dict]) -> str:
             json={
                 "model": "google/gemini-2.0-flash-lite-001",
                 "messages": [{"role": "user", "content": prompt}],
-                "max_tokens": 300,
+                "max_tokens": 600,
                 "temperature": 0.4,
             },
             timeout=30,
