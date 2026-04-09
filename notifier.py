@@ -423,11 +423,19 @@ def send_digest_email(articles: list[dict], period_label: str, intro: str = "") 
 
     intro_block = ""
     if intro:
-        intro_escaped = _html.escape(intro).replace("\n", "<br>")
+        import re as _re
+        # Convert any remaining **bold** markdown to HTML bold
+        clean = _re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", intro)
+        # Strip any leftover * or # characters
+        clean = clean.replace("*", "").replace("#", "")
+        # Split into paragraphs on blank lines
+        paragraphs = [p.strip() for p in clean.split("\n\n") if p.strip()]
+        p_style = "font-size:14px;color:#1a3a24;line-height:1.8;margin:0 0 10px;"
+        intro_html = "".join(f'<p style="{p_style}">{_html.escape(p, quote=False).replace(chr(10), "<br>")}</p>' for p in paragraphs)
         intro_block = f"""\
       <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:20px 24px;margin-bottom:28px;">
-        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#16a34a;margin-bottom:10px;">🤖 AI Samenvatting — Relevant voor Voltera</div>
-        <p style="font-size:14px;color:#1a3a24;line-height:1.75;margin:0;">{intro_escaped}</p>
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#16a34a;margin-bottom:12px;">🤖 AI Samenvatting — Relevant voor Voltera</div>
+        {intro_html}
       </div>"""
 
     subject = f"📋 Dagelijkse Energie Digest — {period_label}"

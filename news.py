@@ -373,8 +373,10 @@ def generate_digest_intro(articles: list[dict]) -> str:
         "op korte termijn kunnen beïnvloeden (prijzen, beschikbaarheid, beleid EU).\n\n"
         "Sluit af met één zin: **Algemene toon voor de verduurzamingsbranche vandaag:** "
         "gevolgd door een korte beoordeling.\n\n"
-        "Schrijf zakelijk, direct en actiegericht. Gebruik vetgedrukte koppen per blok. "
-        "Geen opsommingstekens, maar lopende tekst per blok.\n\n"
+        "Schrijf zakelijk, direct en actiegericht. "
+        "Gebruik GEEN markdown, GEEN asterisken (*) en GEEN hekjes (#). "
+        "Elk blok begint met de koptitel gevolgd door een dubbele punt, dan direct de lopende tekst. "
+        "Scheid de vier blokken met een lege regel. Geen opsommingstekens.\n\n"
         f"Artikelen:\n{feed}"
     )
 
