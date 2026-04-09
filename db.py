@@ -238,6 +238,19 @@ def get_article_count() -> dict:
         return counts
 
 
+def get_digest_articles(since_iso: str, until_iso: str) -> list[dict]:
+    """Return articles created between since_iso and until_iso for the daily digest."""
+    with get_connection() as conn:
+        rows = conn.execute(
+            """SELECT * FROM articles
+               WHERE created_at >= ? AND created_at < ?
+               ORDER BY category, topic,
+                        COALESCE(NULLIF(published_at,''), created_at) DESC""",
+            (since_iso, until_iso),
+        ).fetchall()
+        return [dict(r) for r in rows]
+
+
 def cleanup_old_articles() -> int:
     """Delete articles older than RETENTION_DAYS. Returns count deleted."""
     cutoff = (datetime.now(timezone.utc) - timedelta(days=RETENTION_DAYS)).isoformat()

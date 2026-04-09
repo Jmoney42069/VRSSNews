@@ -6,8 +6,10 @@ Includes rate limiting and message formatting.
 
 import os
 import time
+import html as _html
 import smtplib
 import logging
+from collections import defaultdict
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
@@ -322,3 +324,159 @@ def send_alert(article: dict, summary: str) -> bool:
         print("=" * 60)
 
     return sent
+
+
+# ---------------------------------------------------------------------------
+# Daily digest email
+# ---------------------------------------------------------------------------
+
+_TOPIC_ICONS: dict[str, str] = {
+    "Zonnepanelen":       "🌞",
+    "Thuisbatterijen":    "🔋",
+    "Netcongestie":       "⚡",
+    "Warmtepompen":       "♨️",
+    "Energieprijzen":     "📈",
+    "Onbalansmarkt":      "⚖️",
+    "Energiebeheer":      "🖥️",
+    "Installatiebranche": "🔧",
+    "Markt & Beleid":     "📋",
+    "Algemeen":           "📰",
+}
+
+
+def _build_digest_section(grouped: "dict[str, list[dict]]", flag: str, label: str, total: int) -> str:
+    """Render one NL or INT section as HTML."""
+    if not total:
+        return ""
+
+    topic_blocks = ""
+    for topic in sorted(grouped, key=lambda t: -len(grouped[t])):
+        arts = grouped[topic]
+        icon = _TOPIC_ICONS.get(topic, "📌")
+        items = ""
+        for a in arts:
+            title   = _html.escape(a.get("title", ""))
+            link    = _html.escape(a.get("link", "#"), quote=True)
+            source  = _html.escape(a.get("source", ""))
+            summary = _html.escape((a.get("summary") or "")[:180])
+            if len(a.get("summary") or "") > 180:
+                summary += "…"
+            items += f"""\
+              <li style="padding:10px 0 10px 14px;border-left:3px solid #d1fae5;margin-bottom:6px;list-style:none;">
+                <a href="{link}" style="font-size:14px;font-weight:700;color:#0f1f14;text-decoration:none;line-height:1.45;">{title}</a>
+                <div style="font-size:11px;color:#9ca3af;margin-top:3px;">
+                  <span style="font-weight:600;color:#6b7280;">[{source}]</span>
+                </div>
+                {"" if not summary else f'<p style="font-size:12px;color:#6b7280;line-height:1.6;margin:5px 0 4px;">{summary}</p>'}
+                <a href="{link}" style="font-size:11px;font-weight:700;color:#16a34a;text-decoration:none;">Lees meer &rarr;</a>
+              </li>"""
+
+        topic_blocks += f"""\
+        <div style="margin-bottom:22px;">
+          <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.09em;color:#16a34a;margin-bottom:10px;">{_html.escape(icon + " " + topic)} <span style="font-weight:500;color:#9ca3af;">({len(arts)})</span></div>
+          <ul style="padding:0;margin:0;">
+            {items}
+          </ul>
+        </div>"""
+
+    return f"""\
+      <div style="margin-bottom:36px;">
+        <div style="display:flex;align-items:center;gap:10px;padding-bottom:12px;border-bottom:2px solid #16a34a;margin-bottom:20px;">
+          <span style="font-size:20px;">{flag}</span>
+          <span style="font-size:18px;font-weight:800;color:#0f1f14;">{label}</span>
+          <span style="font-size:12px;font-weight:600;background:#dcfce7;color:#166534;padding:3px 10px;border-radius:999px;margin-left:auto;">{total} artikelen</span>
+        </div>
+        {topic_blocks}
+      </div>"""
+
+
+def send_digest_email(articles: list[dict], period_label: str) -> bool:
+    """Build and send the daily HTML digest email. Returns True on success."""
+    user     = os.getenv("GMAIL_USER", "")
+    password = os.getenv("GMAIL_APP_PASSWORD", "")
+    to_addr  = os.getenv("EMAIL_TO", user)
+    if not user or not password:
+        log.debug("Email not configured — digest not sent")
+        return False
+
+    if not articles:
+        log.info("Digest: no articles in window — skipping send")
+        return True
+
+    # Group by category → topic
+    nl:   "dict[str, list[dict]]" = defaultdict(list)
+    intl: "dict[str, list[dict]]" = defaultdict(list)
+    for a in articles:
+        topic = a.get("topic") or "Algemeen"
+        if a.get("category") == "NL":
+            nl[topic].append(a)
+        else:
+            intl[topic].append(a)
+
+    nl_total  = sum(len(v) for v in nl.values())
+    int_total = sum(len(v) for v in intl.values())
+    total     = nl_total + int_total
+
+    nl_html   = _build_digest_section(nl,   "🇳🇱", "Nederland",     nl_total)
+    int_html  = _build_digest_section(intl, "🌍", "Internationaal", int_total)
+    no_articles_msg = "" if (nl_html or int_html) else "<p style='color:#9ca3af;'>Geen relevante artikelen gevonden in deze periode.</p>"
+
+    subject = f"📋 Dagelijkse Energie Digest — {period_label}"
+
+    html_body = f"""\
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f1;margin:0;padding:0;">
+  <div style="padding:32px 16px;background:#f0f4f1;">
+  <div style="max-width:680px;margin:0 auto;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+
+    <!-- HEADER -->
+    <div style="background:linear-gradient(135deg,#0d3320 0%,#166534 60%,#15803d 100%);padding:32px 36px 28px;">
+      <div style="font-size:24px;font-weight:800;color:#fff;letter-spacing:-0.03em;">Volt<span style="color:#86efac;">era</span></div>
+      <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.13em;color:rgba(255,255,255,0.45);margin-top:2px;">Energie Nieuws Tracker</div>
+      <div style="font-size:20px;font-weight:700;color:#fff;margin-top:18px;">📋 Dagelijkse Digest</div>
+      <div style="font-size:12px;color:rgba(255,255,255,0.55);margin-top:6px;">{_html.escape(period_label)}</div>
+      <div style="margin-top:20px;display:flex;gap:10px;flex-wrap:wrap;">
+        <span style="background:rgba(255,255,255,0.12);color:#fff;font-size:12px;font-weight:600;padding:6px 14px;border-radius:999px;border:1px solid rgba(255,255,255,0.2);">📰 {total} artikelen</span>
+        <span style="background:rgba(255,255,255,0.12);color:#fff;font-size:12px;font-weight:600;padding:6px 14px;border-radius:999px;border:1px solid rgba(255,255,255,0.2);">🇳🇱 {nl_total} Nederland</span>
+        <span style="background:rgba(255,255,255,0.12);color:#fff;font-size:12px;font-weight:600;padding:6px 14px;border-radius:999px;border:1px solid rgba(255,255,255,0.2);">🌍 {int_total} Internationaal</span>
+      </div>
+    </div>
+
+    <!-- BODY -->
+    <div style="padding:32px 36px;">
+      {nl_html}
+      {int_html}
+      {no_articles_msg}
+    </div>
+
+    <!-- FOOTER -->
+    <div style="background:#f9fafb;border-top:1px solid #e5e7eb;padding:18px 36px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+      <span style="font-size:12px;font-weight:700;color:#16a34a;">Voltera News Tracker</span>
+      <span style="font-size:11px;color:#9ca3af;">Dagelijkse digest &nbsp;&middot;&nbsp; Automatisch gegenereerd</span>
+    </div>
+
+  </div>
+  </div>
+</body>
+</html>"""
+
+    try:
+        msg = MIMEMultipart("alternative")
+        msg["From"]    = f"Voltera News <{user}>"
+        msg["To"]      = to_addr
+        msg["Subject"] = subject
+        msg.attach(MIMEText(html_body, "html", "utf-8"))
+
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=15) as server:
+            server.login(user, password)
+            server.send_message(msg)
+        log.info("Digest email sent to %s — %d artikelen", to_addr, total)
+        return True
+    except Exception:
+        log.exception("Digest email send failed")
+        return False

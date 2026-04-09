@@ -9,7 +9,8 @@ import os
 import time
 import logging
 import threading
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone, timedelta, date
+from zoneinfo import ZoneInfo
 
 from flask import Flask, render_template, request, jsonify, make_response
 from dotenv import load_dotenv
@@ -32,9 +33,14 @@ logging.basicConfig(
 log = logging.getLogger("energy-tracker")
 
 POLL_INTERVAL = int(os.getenv("POLL_INTERVAL", "300"))
+DIGEST_HOUR   = int(os.getenv("DIGEST_HOUR", "12"))  # clock hour in Amsterdam time
+
+_AMS = ZoneInfo("Europe/Amsterdam")
 
 # Last successful poll timestamp — loaded from DB on startup, persisted after each cycle
 _last_poll_at: datetime | None = None
+# Date on which the last digest was sent (Amsterdam date)
+_last_digest_date: date | None = None
 
 # ---------------------------------------------------------------------------
 # Flask application
@@ -160,32 +166,15 @@ def _worker_cycle() -> None:
         # 2. Filter & enrich (score, classify, sentiment)
         relevant = news.filter_and_enrich(articles)
 
-        # 3. Store new articles & collect those that need alerting
-        # Skip alerts on the very first poll after startup (avoids duplicate mails
-        # when the DB is fresh or when both local and Render start simultaneously)
-        is_first_poll = _last_poll_at is None
+        # 3. Store new articles
         new_count = 0
-        to_alert: list[dict] = []
         for article in relevant:
-            was_new = db.insert_article(article)
-            if was_new:
+            if db.insert_article(article):
                 new_count += 1
-                if not is_first_poll and article.get("tier", 2) == 1:
-                    to_alert.append(article)
 
         log.info("Stored %d new articles (%d already existed)", new_count, len(relevant) - new_count)
 
-        # 4. Send alerts for new articles
-        for article in to_alert:
-            try:
-                summary = news.summarize(article)
-                sent = notifier.send_alert(article, summary)
-                if sent:
-                    db.mark_alerted(article["link"])
-            except Exception:
-                log.exception("Alert failed for: %s", article["title"][:60])
-
-        # 5. Cleanup old data
+        # 4. Cleanup old data
         db.cleanup_old_articles()
         log.info("─── Poll cycle done ───")
     except Exception:
@@ -193,6 +182,38 @@ def _worker_cycle() -> None:
     finally:
         _last_poll_at = datetime.now(timezone.utc)
         db.set_meta("last_poll_at", _last_poll_at.isoformat())
+
+
+def _send_daily_digest(now_ams: datetime) -> None:
+    """Fetch articles from the last 24 h and email the digest."""
+    _NL_MONTHS = ["jan","feb","mrt","apr","mei","jun","jul","aug","sep","okt","nov","dec"]
+    until_ams = now_ams.replace(minute=0, second=0, microsecond=0)
+    since_ams = until_ams - timedelta(hours=24)
+    # Convert window to UTC ISO strings for DB query
+    since_utc = since_ams.astimezone(timezone.utc).isoformat()
+    until_utc = until_ams.astimezone(timezone.utc).isoformat()
+    articles = db.get_digest_articles(since_utc, until_utc)
+    log.info("Digest: %d articles between %s and %s", len(articles), since_ams, until_ams)
+    since_label = f"{since_ams.day} {_NL_MONTHS[since_ams.month-1]} {since_ams.year} {since_ams.strftime('%H:%M')}"
+    until_label = f"{until_ams.day} {_NL_MONTHS[until_ams.month-1]} {until_ams.year} {until_ams.strftime('%H:%M')}"
+    period_label = f"{since_label} – {until_label}"
+    notifier.send_digest_email(articles, period_label)
+
+
+def _digest_worker() -> None:
+    """Fires _send_daily_digest once per day at DIGEST_HOUR (Amsterdam time)."""
+    global _last_digest_date
+    log.info("Digest worker started (fires at %02d:00 Amsterdam time)", DIGEST_HOUR)
+    while True:
+        now_ams = datetime.now(_AMS)
+        if now_ams.hour == DIGEST_HOUR and now_ams.date() != _last_digest_date:
+            try:
+                _send_daily_digest(now_ams)
+                _last_digest_date = now_ams.date()
+                db.set_meta("last_digest_date", _last_digest_date.isoformat())
+            except Exception:
+                log.exception("Digest worker failed")
+        time.sleep(60)
 
 
 def background_worker() -> None:
@@ -250,6 +271,15 @@ def _ensure_started():
         except Exception:
             pass
 
+    # Restore last digest date so we don't double-send after a restart
+    stored_digest = db.get_meta("last_digest_date")
+    if stored_digest:
+        try:
+            _last_digest_date = date.fromisoformat(stored_digest)
+            log.info("Restored last_digest_date from DB: %s", stored_digest)
+        except Exception:
+            pass
+
     log.info("=" * 60)
     log.info("⚡ Energy News Tracker")
     log.info("  Feeds     : %d", len(news.RSS_FEEDS))
@@ -261,6 +291,9 @@ def _ensure_started():
 
     worker = threading.Thread(target=background_worker, daemon=True)
     worker.start()
+
+    digest = threading.Thread(target=_digest_worker, daemon=True)
+    digest.start()
 
 
 # Start on import so gunicorn picks it up
