@@ -378,7 +378,7 @@ def generate_digest_intro(articles: list[dict]) -> str:
                 "Content-Type": "application/json",
             },
             json={
-                "model": "google/gemini-flash-1.5",
+                "model": "google/gemini-2.0-flash-lite-001",
                 "messages": [{"role": "user", "content": prompt}],
                 "max_tokens": 300,
                 "temperature": 0.4,
