@@ -424,14 +424,15 @@ def send_digest_email(articles: list[dict], period_label: str, intro: str = "") 
     intro_block = ""
     if intro:
         import re as _re
-        # Convert any remaining **bold** markdown to HTML bold
-        clean = _re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", intro)
+        # Escape HTML first, then convert **bold** to <strong> (order matters!)
+        clean = _html.escape(intro, quote=False)
+        clean = _re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", clean)
         # Strip any leftover * or # characters
         clean = clean.replace("*", "").replace("#", "")
         # Split into paragraphs on blank lines
         paragraphs = [p.strip() for p in clean.split("\n\n") if p.strip()]
         p_style = "font-size:14px;color:#1a3a24;line-height:1.8;margin:0 0 10px;"
-        intro_html = "".join(f'<p style="{p_style}">{_html.escape(p, quote=False).replace(chr(10), "<br>")}</p>' for p in paragraphs)
+        intro_html = "".join(f'<p style="{p_style}">{p.replace(chr(10), "<br>")}</p>' for p in paragraphs)
 
         # Build sources list — NL first, then INT, top 15 by score
         source_articles = sorted(articles, key=lambda a: (0 if a.get("category") == "NL" else 1, -a.get("score", 0)))[:15]
