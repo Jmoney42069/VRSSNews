@@ -159,6 +159,11 @@ def api_send_digest():
     period_label = f"{since_label} – {until_label}"
     intro = news.generate_digest_intro(articles)
     sent = notifier.send_digest_email(articles, period_label, intro=intro)
+    # Mark digest as sent today so the internal worker doesn't double-send
+    if sent and hours == 24:
+        global _last_digest_date
+        _last_digest_date = now_ams.date()
+        db.set_meta("last_digest_date", _last_digest_date.isoformat())
     return jsonify({"sent": sent, "articles": len(articles), "period": period_label})
 
 
@@ -312,8 +317,8 @@ def _ensure_started():
     log.info("  Feeds     : %d", len(news.RSS_FEEDS))
     log.info("  Interval  : %ds", POLL_INTERVAL)
     log.info("  Telegram  : %s", "✓" if os.getenv("TELEGRAM_TOKEN") else "✗")
-    log.info("  Email     : %s", "✓" if os.getenv("EMAIL_USER") else "✗")
-    log.info("  OpenAI    : %s", "✓" if os.getenv("OPENAI_API_KEY") else "✗ (fallback)")
+    log.info("  Email     : %s", "✓" if os.getenv("GMAIL_USER") else "✗")
+    log.info("  OpenRouter: %s", "✓" if os.getenv("OPENROUTER_API_KEY") else "✗ (geen AI samenvatting)")
     log.info("=" * 60)
 
     worker = threading.Thread(target=background_worker, daemon=True)

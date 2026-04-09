@@ -5,6 +5,7 @@ Includes rate limiting and message formatting.
 """
 
 import os
+import re as _re
 import time
 import html as _html
 import smtplib
@@ -394,14 +395,21 @@ def send_digest_email(articles: list[dict], period_label: str, intro: str = "") 
     """Build and send the daily HTML digest email. Returns True on success."""
     user     = os.getenv("GMAIL_USER", "")
     password = os.getenv("GMAIL_APP_PASSWORD", "")
-    to_addr  = os.getenv("EMAIL_TO", user)
+    # Support comma-separated list of recipients in EMAIL_TO
+    to_raw   = os.getenv("EMAIL_TO", user)
+    to_list  = [addr.strip() for addr in to_raw.split(",") if addr.strip()]
     if not user or not password:
         log.debug("Email not configured — digest not sent")
         return False
+    if not to_list:
+        log.warning("EMAIL_TO is empty — digest not sent")
+        return False
 
     if not articles:
-        log.info("Digest: no articles in window — skipping send")
-        return True
+        no_articles_msg = "<p style='font-size:14px;color:#6b7280;'>Er zijn vandaag geen relevante energie-artikelen gevonden.</p>"
+        log.info("Digest: geen artikelen in venster — stuur lege digest")
+    else:
+        no_articles_msg = ""
 
     # Group by category → topic
     nl:   "dict[str, list[dict]]" = defaultdict(list)
@@ -419,11 +427,11 @@ def send_digest_email(articles: list[dict], period_label: str, intro: str = "") 
 
     nl_html   = _build_digest_section(nl,   "🇳🇱", "Nederland",     nl_total)
     int_html  = _build_digest_section(intl, "🌍", "Internationaal", int_total)
-    no_articles_msg = "" if (nl_html or int_html) else "<p style='color:#9ca3af;'>Geen relevante artikelen gevonden in deze periode.</p>"
+    if nl_html or int_html:
+        no_articles_msg = ""
 
     intro_block = ""
     if intro:
-        import re as _re
         # Escape HTML first, then convert **bold** to <strong> (order matters!)
         clean = _html.escape(intro, quote=False)
         clean = _re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", clean)
@@ -508,14 +516,14 @@ def send_digest_email(articles: list[dict], period_label: str, intro: str = "") 
     try:
         msg = MIMEMultipart("alternative")
         msg["From"]    = f"Voltera News <{user}>"
-        msg["To"]      = to_addr
+        msg["To"]      = ", ".join(to_list)
         msg["Subject"] = subject
         msg.attach(MIMEText(html_body, "html", "utf-8"))
 
-        with smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=15) as server:
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=30) as server:
             server.login(user, password)
-            server.send_message(msg)
-        log.info("Digest email sent to %s — %d artikelen", to_addr, total)
+            server.sendmail(user, to_list, msg.as_string())
+        log.info("Digest email sent to %s — %d artikelen", ", ".join(to_list), total)
         return True
     except Exception:
         log.exception("Digest email send failed")
