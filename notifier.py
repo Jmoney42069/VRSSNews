@@ -503,9 +503,12 @@ def send_digest_email(articles: list[dict], period_label: str, intro: str = "") 
     </div>
 
     <!-- FOOTER -->
-    <div style="background:#f9fafb;border-top:1px solid #e5e7eb;padding:18px 36px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
-      <span style="font-size:12px;font-weight:700;color:#16a34a;">Voltera News Tracker</span>
-      <span style="font-size:11px;color:#9ca3af;">Dagelijkse digest &nbsp;&middot;&nbsp; Automatisch gegenereerd</span>
+    <div style="background:#f9fafb;border-top:1px solid #e5e7eb;padding:24px 36px;text-align:center;">
+      <a href="https://vrssnews.onrender.com" style="display:inline-block;background:linear-gradient(135deg,#16a34a,#15803d);color:#ffffff;text-decoration:none;font-size:14px;font-weight:700;padding:13px 32px;border-radius:999px;letter-spacing:0.01em;box-shadow:0 4px 14px rgba(22,163,74,0.3);">📊 Bekijk volledig dashboard &rarr;</a>
+      <div style="margin-top:16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+        <span style="font-size:12px;font-weight:700;color:#16a34a;">Voltera News Tracker</span>
+        <span style="font-size:11px;color:#9ca3af;">Dagelijkse digest &nbsp;&middot;&nbsp; Automatisch gegenereerd</span>
+      </div>
     </div>
 
   </div>
