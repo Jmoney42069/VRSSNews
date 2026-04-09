@@ -27,3 +27,5 @@ services:
         sync: false
       - key: DIGEST_SECRET
         sync: false
+      - key: OPENROUTER_API_KEY
+        sync: false

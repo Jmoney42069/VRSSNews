@@ -157,7 +157,8 @@ def api_send_digest():
     since_label  = f"{since_ams.day} {_NL_MONTHS[since_ams.month-1]} {since_ams.year} {since_ams.strftime('%H:%M')}"
     until_label  = f"{now_ams.day} {_NL_MONTHS[now_ams.month-1]} {now_ams.year} {now_ams.strftime('%H:%M')}"
     period_label = f"{since_label} – {until_label}"
-    sent = notifier.send_digest_email(articles, period_label)
+    intro = news.generate_digest_intro(articles)
+    sent = notifier.send_digest_email(articles, period_label, intro=intro)
     return jsonify({"sent": sent, "articles": len(articles), "period": period_label})
 
 
@@ -222,7 +223,8 @@ def _send_daily_digest(now_ams: datetime) -> None:
     since_label = f"{since_ams.day} {_NL_MONTHS[since_ams.month-1]} {since_ams.year} {since_ams.strftime('%H:%M')}"
     until_label = f"{until_ams.day} {_NL_MONTHS[until_ams.month-1]} {until_ams.year} {until_ams.strftime('%H:%M')}"
     period_label = f"{since_label} – {until_label}"
-    notifier.send_digest_email(articles, period_label)
+    intro = news.generate_digest_intro(articles)
+    notifier.send_digest_email(articles, period_label, intro=intro)
 
 
 def _digest_worker() -> None:

@@ -390,7 +390,7 @@ def _build_digest_section(grouped: "dict[str, list[dict]]", flag: str, label: st
       </div>"""
 
 
-def send_digest_email(articles: list[dict], period_label: str) -> bool:
+def send_digest_email(articles: list[dict], period_label: str, intro: str = "") -> bool:
     """Build and send the daily HTML digest email. Returns True on success."""
     user     = os.getenv("GMAIL_USER", "")
     password = os.getenv("GMAIL_APP_PASSWORD", "")
@@ -421,6 +421,15 @@ def send_digest_email(articles: list[dict], period_label: str) -> bool:
     int_html  = _build_digest_section(intl, "🌍", "Internationaal", int_total)
     no_articles_msg = "" if (nl_html or int_html) else "<p style='color:#9ca3af;'>Geen relevante artikelen gevonden in deze periode.</p>"
 
+    intro_block = ""
+    if intro:
+        intro_escaped = _html.escape(intro).replace("\n", "<br>")
+        intro_block = f"""\
+      <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:20px 24px;margin-bottom:28px;">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#16a34a;margin-bottom:10px;">🤖 AI Samenvatting — Relevant voor Voltera</div>
+        <p style="font-size:14px;color:#1a3a24;line-height:1.75;margin:0;">{intro_escaped}</p>
+      </div>"""
+
     subject = f"📋 Dagelijkse Energie Digest — {period_label}"
 
     html_body = f"""\
@@ -449,6 +458,7 @@ def send_digest_email(articles: list[dict], period_label: str) -> bool:
 
     <!-- BODY -->
     <div style="padding:32px 36px;">
+      {intro_block}
       {nl_html}
       {int_html}
       {no_articles_msg}

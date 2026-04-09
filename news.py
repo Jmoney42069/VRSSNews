@@ -11,6 +11,7 @@ from datetime import datetime, timezone, timedelta
 from typing import Optional
 
 import feedparser
+import requests
 
 log = logging.getLogger("energy-tracker.news")
 
@@ -328,6 +329,67 @@ ALL_TOPICS = [t[0] for t in TOPICS] + ["Algemeen"]
 # ---------------------------------------------------------------------------
 # Summarization
 # ---------------------------------------------------------------------------
+
+
+def generate_digest_intro(articles: list[dict]) -> str:
+    """
+    Use Gemini Flash via OpenRouter to write a short Dutch executive summary
+    of the day's articles, focused on what's relevant for Voltera:
+    energy prices, solar panels, home batteries, and heat pumps.
+    Falls back to an empty string on failure.
+    """
+    api_key = os.getenv("OPENROUTER_API_KEY", "")
+    if not api_key or not articles:
+        return ""
+
+    # Build a compact feed of titles + one-liner summaries for the prompt
+    lines: list[str] = []
+    for a in articles[:40]:  # cap at 40 to stay within context
+        title   = a.get("title", "")
+        summary = (a.get("summary") or "")[:200].replace("\n", " ")
+        cat     = "NL" if a.get("category") == "NL" else "INT"
+        lines.append(f"[{cat}] {title} — {summary}")
+    feed = "\n".join(lines)
+
+    prompt = (
+        "Je bent een energie-markt analist voor Voltera, een Nederlands bedrijf "
+        "in zonnepanelen, thuisbatterijen en warmtepompen.\n\n"
+        "Hieronder staan de energie-nieuwsartikelen van de afgelopen 24 uur. "
+        "Schrijf een beknopte Nederlandse samenvatting (maximaal 120 woorden) "
+        "van de MEEST RELEVANTE ontwikkelingen voor Voltera. Focus op:\n"
+        "- Energieprijzen en marktbewegingen\n"
+        "- Zonnepanelen (subsidies, saldering, installaties)\n"
+        "- Thuisbatterijen en opslag\n"
+        "- Warmtepompen\n"
+        "- Netcongestie en regelgeving die klanten raakt\n\n"
+        "Schrijf in de verleden tijd, zakelijk maar leesbaar. Geen bullet points, "
+        "gewoon lopende tekst. Sluit af met één zin over de algemene toon "
+        "(positief/neutraal/negatief voor de branche).\n\n"
+        f"Artikelen:\n{feed}"
+    )
+
+    try:
+        resp = requests.post(
+            "https://openrouter.ai/api/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "HTTP-Referer": "https://vrssnews.onrender.com",
+                "X-Title": "Voltera News Tracker",
+                "Content-Type": "application/json",
+            },
+            json={
+                "model": "google/gemini-flash-1.5",
+                "messages": [{"role": "user", "content": prompt}],
+                "max_tokens": 300,
+                "temperature": 0.4,
+            },
+            timeout=30,
+        )
+        resp.raise_for_status()
+        return resp.json()["choices"][0]["message"]["content"].strip()
+    except Exception:
+        log.exception("OpenRouter digest intro generation failed")
+        return ""
 
 
 def _summarize_openai(article: dict) -> Optional[str]:
