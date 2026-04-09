@@ -487,10 +487,11 @@ def send_digest_email(articles: list[dict], period_label: str, intro: str = "") 
       <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.13em;color:rgba(255,255,255,0.45);margin-top:2px;">Energie Nieuws Tracker</div>
       <div style="font-size:20px;font-weight:700;color:#fff;margin-top:18px;">📋 Dagelijkse Digest</div>
       <div style="font-size:12px;color:rgba(255,255,255,0.55);margin-top:6px;">{_html.escape(period_label)}</div>
-      <div style="margin-top:20px;display:flex;gap:10px;flex-wrap:wrap;">
+      <div style="margin-top:20px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
         <span style="background:rgba(255,255,255,0.12);color:#fff;font-size:12px;font-weight:600;padding:6px 14px;border-radius:999px;border:1px solid rgba(255,255,255,0.2);">📰 {total} artikelen</span>
         <span style="background:rgba(255,255,255,0.12);color:#fff;font-size:12px;font-weight:600;padding:6px 14px;border-radius:999px;border:1px solid rgba(255,255,255,0.2);">🇳🇱 {nl_total} Nederland</span>
         <span style="background:rgba(255,255,255,0.12);color:#fff;font-size:12px;font-weight:600;padding:6px 14px;border-radius:999px;border:1px solid rgba(255,255,255,0.2);">🌍 {int_total} Internationaal</span>
+        <a href="https://vrssnews.onrender.com" style="margin-left:auto;display:inline-block;background:#ffffff;color:#166534;text-decoration:none;font-size:12px;font-weight:700;padding:6px 16px;border-radius:999px;letter-spacing:0.01em;">📊 Dashboard &rarr;</a>
       </div>
     </div>
 
@@ -503,12 +504,9 @@ def send_digest_email(articles: list[dict], period_label: str, intro: str = "") 
     </div>
 
     <!-- FOOTER -->
-    <div style="background:#f9fafb;border-top:1px solid #e5e7eb;padding:24px 36px;text-align:center;">
-      <a href="https://vrssnews.onrender.com" style="display:inline-block;background:linear-gradient(135deg,#16a34a,#15803d);color:#ffffff;text-decoration:none;font-size:14px;font-weight:700;padding:13px 32px;border-radius:999px;letter-spacing:0.01em;box-shadow:0 4px 14px rgba(22,163,74,0.3);">📊 Bekijk volledig dashboard &rarr;</a>
-      <div style="margin-top:16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
-        <span style="font-size:12px;font-weight:700;color:#16a34a;">Voltera News Tracker</span>
-        <span style="font-size:11px;color:#9ca3af;">Dagelijkse digest &nbsp;&middot;&nbsp; Automatisch gegenereerd</span>
-      </div>
+    <div style="background:#f9fafb;border-top:1px solid #e5e7eb;padding:18px 36px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+      <span style="font-size:12px;font-weight:700;color:#16a34a;">Voltera News Tracker</span>
+      <span style="font-size:11px;color:#9ca3af;">Dagelijkse digest &nbsp;&middot;&nbsp; Automatisch gegenereerd</span>
     </div>
 
   </div>
