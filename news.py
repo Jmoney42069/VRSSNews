@@ -355,22 +355,35 @@ def generate_digest_intro(articles: list[dict]) -> str:
     feed = "\n".join(lines)
 
     prompt = (
-        "Je bent een commercieel strateeg voor Voltera, een Nederlands installatiebedrijf "
-        "dat zonnepanelen, thuisbatterijen en warmtepompen verkoopt en installeert bij "
-        "particulieren en MKB. Jouw enige doel: bepalen welk nieuws van vandaag de "
-        "verkoop van Voltera's producten beïnvloedt.\n\n"
-        "Schrijf een BEKNOPTE Nederlandse samenvatting van EXACT 4 alinea's. "
-        "Elke alinea is maximaal 2-3 zinnen. Totaal maximaal 150 woorden.\n\n"
-        "Alinea 1 — VERKOOPKANSEN: Welk nieuws creëert directe vraag naar zonnepanelen, "
-        "thuisbatterijen of warmtepompen? (subsidies, hoge energieprijzen, regelgeving)\n\n"
-        "Alinea 2 — MARKT & BELEID: Veranderingen in wet- of regelgeving, "
-        "salderingsregeling, netcongestie of overheidsbeleid die klanten activeren of remmen.\n\n"
-        "Alinea 3 — TECHNOLOGIE: Nieuwe producten, prijsdalingen of innovaties waarmee "
-        "Voltera een beter of goedkoper aanbod kan doen.\n\n"
-        "Alinea 4 — ACTIESIGNAAL: Één concrete zin — wat moet Voltera's salesteam "
-        "VANDAAG doen of benadrukken richting klanten?\n\n"
-        "Schrijf zakelijk en direct. Geen opsommingstekens, geen markdown, geen asterisken. "
-        "Begin elke alinea met de cursieve koptitel gevolgd door een dubbele punt.\n\n"
+        "Je bent een senior energie-analist en commercieel strateeg voor Voltera, een Nederlands "
+        "installatiebedrijf dat zonnepanelen, thuisbatterijen en warmtepompen verkoopt en installeert "
+        "bij particulieren en MKB. Voltera opereert volledig in de Nederlandse markt.\n\n"
+        "Analyseer de onderstaande nieuwsartikelen van de afgelopen 24 uur en schrijf een "
+        "gedetailleerde Nederlandse managementsamenvatting van 350-450 woorden. "
+        "Gebruik de volgende vier vaste secties:\n\n"
+        "VERKOOPKANSEN:\n"
+        "Beschrijf concreet welk nieuws van vandaag directe verkoopkansen oplevert voor Voltera. "
+        "Denk aan: stijgende energieprijzen die de terugverdientijd verkorten, nieuwe of verlengde "
+        "subsidies (ISDE, salderingsregeling, gemeentelijke regelingen), beleidswijzigingen die "
+        "aankoop aantrekkelijker maken, of maatschappelijke ontwikkelingen die verduurzaming "
+        "urgenter maken. Geef specifieke cijfers en context als die in de artikelen staan.\n\n"
+        "MARKT & BELEID:\n"
+        "Bespreek relevante ontwikkelingen in wet- en regelgeving, overheidsbeleid, netcongestie, "
+        "salderingsregeling of ACM/netbeheerder-besluiten. Wat zijn de gevolgen voor Voltera's "
+        "klanten en installatieplanningen? Noem ook relevante Europese regelgeving (RED, ETS, EPBD) "
+        "als die in de artikelen voorkomt.\n\n"
+        "TECHNOLOGIE & PRODUCTEN:\n"
+        "Welke technologische ontwikkelingen zijn relevant voor Voltera's productaanbod? "
+        "Denk aan: nieuwe batterijgeneraties, efficiëntere zonnepanelen, betere warmtepomp-modellen, "
+        "prijsontwikkelingen van hardware, of innovaties in energiebeheer en omvormers. "
+        "Geef aan of dit een kans of een risico is voor Voltera's huidige aanbod.\n\n"
+        "ACTIESIGNAAL VOOR SALESTEAM:\n"
+        "Sluit af met 2-3 concrete, uitvoerbare aanbevelingen voor Voltera's salesteam gebaseerd "
+        "op het nieuws van vandaag. Wat moeten zij benadrukken in klantgesprekken? Welk product "
+        "of argument is vandaag extra sterk? Is er urgentie die klanten over de streep kan trekken?\n\n"
+        "Schrijf in lopende, zakelijke Nederlandse tekst. Geen opsommingstekens, geen markdown, "
+        "geen asterisken of hekjes. Begin elke sectie op een nieuwe regel met de sectietitel "
+        "gevolgd door een dubbele punt, dan direct de tekst. Scheid secties met een lege regel.\n\n"
         f"Artikelen van de afgelopen 24 uur:\n{feed}"
     )
 
@@ -386,7 +399,7 @@ def generate_digest_intro(articles: list[dict]) -> str:
             json={
                 "model": "google/gemini-2.0-flash-lite-001",
                 "messages": [{"role": "user", "content": prompt}],
-                "max_tokens": 350,
+                "max_tokens": 900,
                 "temperature": 0.4,
             },
             timeout=30,
