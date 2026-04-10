@@ -345,13 +345,14 @@ def generate_digest_intro(articles: list[dict]) -> str:
         return ""
 
     # Build a compact feed — NL articles first, then INT, capped at 40
+    # Articles are numbered [1]..[N] so the AI can cite them per section.
     sorted_articles = sorted(articles, key=lambda a: 0 if a.get("category") == "NL" else 1)
     lines: list[str] = []
-    for a in sorted_articles[:40]:  # cap at 40 to stay within context
+    for i, a in enumerate(sorted_articles[:40], 1):  # cap at 40 to stay within context
         title   = a.get("title", "")
         summary = (a.get("summary") or "")[:200].replace("\n", " ")
         cat     = "NL" if a.get("category") == "NL" else "INT"
-        lines.append(f"[{cat}] {title} — {summary}")
+        lines.append(f"[{i}] [{cat}] {title} — {summary}")
     feed = "\n".join(lines)
 
     prompt = (
@@ -383,7 +384,9 @@ def generate_digest_intro(articles: list[dict]) -> str:
         "of argument is vandaag extra sterk? Is er urgentie die klanten over de streep kan trekken?\n\n"
         "Schrijf in lopende, zakelijke Nederlandse tekst. Geen opsommingstekens, geen markdown, "
         "geen asterisken of hekjes. Begin elke sectie op een nieuwe regel met de sectietitel "
-        "gevolgd door een dubbele punt, dan direct de tekst. Scheid secties met een lege regel.\n\n"
+        "gevolgd door een dubbele punt, dan direct de tekst. Scheid secties met een lege regel.\n"
+        "Voeg aan het EINDE van elke sectie, op een aparte nieuwe regel, de nummers toe van de "
+        "artikelen die je voor die sectie hebt gebruikt. Formaat exact: Bronnen: [1] [3] [7]\n\n"
         f"Artikelen van de afgelopen 24 uur:\n{feed}"
     )
 
@@ -399,7 +402,7 @@ def generate_digest_intro(articles: list[dict]) -> str:
             json={
                 "model": "google/gemini-2.0-flash-lite-001",
                 "messages": [{"role": "user", "content": prompt}],
-                "max_tokens": 900,
+                "max_tokens": 1000,
                 "temperature": 0.4,
             },
             timeout=30,

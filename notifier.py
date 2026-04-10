@@ -432,41 +432,100 @@ def send_digest_email(articles: list[dict], period_label: str, intro: str = "") 
 
     intro_block = ""
     if intro:
-        # Escape HTML first, then convert **bold** to <strong> (order matters!)
-        clean = _html.escape(intro, quote=False)
-        clean = _re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", clean)
-        # Strip any leftover * or # characters
-        clean = clean.replace("*", "").replace("#", "")
-        # Split into paragraphs on blank lines
-        paragraphs = [p.strip() for p in clean.split("\n\n") if p.strip()]
-        p_style = "font-size:14px;color:#1a3a24;line-height:1.8;margin:0 0 10px;"
-        intro_html = "".join(f'<p style="{p_style}">{p.replace(chr(10), "<br>")}</p>' for p in paragraphs)
+        # Build numbered article reference map — same sort order as generate_digest_intro
+        ref_articles = sorted(articles, key=lambda a: 0 if a.get("category") == "NL" else 1)[:40]
+        ref_map: "dict[int, dict]" = {i: a for i, a in enumerate(ref_articles, 1)}
 
-        # Build sources list — NL first, then INT, top 15 by score
-        source_articles = sorted(articles, key=lambda a: (0 if a.get("category") == "NL" else 1, -a.get("score", 0)))[:15]
-        source_items = ""
-        for i, a in enumerate(source_articles, 1):
-            t    = _html.escape(a.get("title", ""))
-            href = _html.escape(a.get("link", "#"), quote=True)
-            src  = _html.escape(a.get("source", ""))
-            flag = "🇳🇱" if a.get("category") == "NL" else "🌍"
-            source_items += (
-                f'<div style="padding:6px 0;border-bottom:1px solid #d1fae5;">'
-                f'<span style="font-size:11px;color:#9ca3af;margin-right:6px;">{i}.</span>'
-                f'<a href="{href}" style="font-size:13px;font-weight:600;color:#166534;text-decoration:none;">{t}</a>'
-                f'<span style="font-size:11px;color:#9ca3af;margin-left:8px;">{flag} {src}</span>'
-                f'</div>'
-            )
+        # Section definitions — AI is prompted to use these exact titles
+        SECTION_DEFS = [
+            ("VERKOOPKANSEN",               "🎯 Verkoopkansen"),
+            ("MARKT & BELEID",              "📋 Markt & Beleid"),
+            ("TECHNOLOGIE & PRODUCTEN",     "🔬 Technologie & Producten"),
+            ("ACTIESIGNAAL VOOR SALESTEAM", "⚡ Actiesignaal voor Salesteam"),
+        ]
+        title_lookup = {k.upper(): d for k, d in SECTION_DEFS}
 
-        intro_block = f"""\
-      <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:20px 24px;margin-bottom:28px;">
-        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#16a34a;margin-bottom:12px;">🤖 AI Samenvatting — Relevant voor Voltera</div>
-        {intro_html}
-        <div style="margin-top:16px;padding-top:14px;border-top:1px solid #bbf7d0;">
-          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#16a34a;margin-bottom:8px;">📎 Bronnen gebruikt voor deze samenvatting</div>
-          {source_items}
-        </div>
-      </div>"""
+        # Split intro text on known section headers
+        title_pat = _re.compile(
+            r'(?m)^(' + '|'.join(_re.escape(k) for k, _ in SECTION_DEFS) + r')\s*:',
+            _re.IGNORECASE,
+        )
+        parts = title_pat.split(intro)
+        # parts = [prefix, title1, body1, title2, body2, ...]
+        parsed_sections: "list[tuple[str,str]]" = []
+        idx = 1
+        while idx < len(parts) - 1:
+            raw_key  = parts[idx].strip().upper()
+            body_raw = parts[idx + 1].strip()
+            disp     = title_lookup.get(raw_key, raw_key.title())
+            parsed_sections.append((disp, body_raw))
+            idx += 2
+
+        def _extract_bronnen(text: str) -> tuple[list[int], str]:
+            """Pull 'Bronnen: [N] [M]' line from end of section body."""
+            lines_b = text.split('\n')
+            refs_b: list[int] = []
+            clean_lines = lines_b[:]
+            for j in range(len(lines_b) - 1, max(len(lines_b) - 4, -1), -1):
+                stripped = lines_b[j].strip()
+                if stripped.lower().startswith('bronnen') and '[' in stripped:
+                    refs_b = [int(n) for n in _re.findall(r'\[(\d+)\]', stripped)]
+                    clean_lines = lines_b[:j]
+                    break
+            return refs_b, '\n'.join(clean_lines).strip()
+
+        if parsed_sections:
+            sec_html_parts: list[str] = []
+            for disp_title, body_raw in parsed_sections:
+                refs_b, clean_body = _extract_bronnen(body_raw)
+                clean_body = _html.escape(clean_body, quote=False)
+                clean_body = clean_body.replace('\n\n', '</p><p style="font-size:14px;color:#1a3a24;line-height:1.8;margin:8px 0 0;">').replace('\n', '<br>')
+
+                src_items_html = ""
+                for ref in refs_b:
+                    if ref in ref_map:
+                        ra    = ref_map[ref]
+                        rt    = _html.escape(ra.get("title", ""))
+                        rh    = _html.escape(ra.get("link", "#"), quote=True)
+                        rs    = _html.escape(ra.get("source", ""))
+                        rflag = "🇳🇱" if ra.get("category") == "NL" else "🌍"
+                        src_items_html += (
+                            f'<div style="padding:5px 0 5px 10px;border-left:2px solid #86efac;margin-bottom:4px;">'
+                            f'<a href="{rh}" style="font-size:12px;font-weight:600;color:#166534;text-decoration:none;">{rt}</a>'
+                            f'<span style="font-size:11px;color:#9ca3af;margin-left:8px;">{rflag} {rs}</span>'
+                            f'</div>'
+                        )
+
+                src_block = (
+                    f'<div style="margin-top:8px;padding-top:8px;border-top:1px dashed #d1fae5;">'
+                    f'{src_items_html}</div>'
+                ) if src_items_html else ""
+
+                sec_html_parts.append(
+                    f'<div style="margin-bottom:24px;">'
+                    f'<div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.09em;color:#166534;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid #bbf7d0;">'
+                    f'{_html.escape(disp_title)}</div>'
+                    f'<p style="font-size:14px;color:#1a3a24;line-height:1.8;margin:0;">{clean_body}</p>'
+                    f'{src_block}'
+                    f'</div>'
+                )
+            intro_html = "".join(sec_html_parts)
+        else:
+            # Fallback: render as single unsectioned block
+            clean = _html.escape(intro, quote=False)
+            clean = _re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", clean)
+            clean = clean.replace("*", "").replace("#", "")
+            paragraphs = [p.strip() for p in clean.split("\n\n") if p.strip()]
+            p_style = "font-size:14px;color:#1a3a24;line-height:1.8;margin:0 0 10px;"
+            intro_html = "".join(f'<p style="{p_style}">{p.replace(chr(10), "<br>")}</p>' for p in paragraphs)
+
+        intro_block = (
+            '<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:20px 24px;margin-bottom:28px;">'
+            '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#16a34a;margin-bottom:16px;">'
+            '🤖 AI Samenvatting — Relevant voor Voltera</div>'
+            f'{intro_html}'
+            '</div>'
+        )
 
     subject = f"📋 Dagelijkse Energie Digest — {period_label}"
 
