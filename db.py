@@ -239,14 +239,25 @@ def get_article_count() -> dict:
 
 
 def get_digest_articles(since_iso: str, until_iso: str) -> list[dict]:
-    """Return articles created between since_iso and until_iso for the daily digest."""
+    """Return articles published (or stored) between since_iso and until_iso for the daily digest.
+
+    Uses published_at when available so that articles fetched late (e.g. after a
+    service restart) are placed in the correct time window.  Falls back to
+    created_at when published_at is empty.
+    """
     with get_connection() as conn:
         rows = conn.execute(
             """SELECT * FROM articles
-               WHERE created_at >= ? AND created_at < ?
+               WHERE (
+                   (published_at IS NOT NULL AND published_at != ''
+                    AND published_at >= ? AND published_at < ?)
+                   OR
+                   (COALESCE(published_at, '') = ''
+                    AND created_at >= ? AND created_at < ?)
+               )
                ORDER BY category, topic,
                         COALESCE(NULLIF(published_at,''), created_at) DESC""",
-            (since_iso, until_iso),
+            (since_iso, until_iso, since_iso, until_iso),
         ).fetchall()
         return [dict(r) for r in rows]
 

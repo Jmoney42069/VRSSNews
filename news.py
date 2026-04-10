@@ -292,17 +292,19 @@ def detect_sentiment(article: dict) -> str:
 
 def filter_and_enrich(articles: list[dict]) -> list[dict]:
     """Score, filter, classify and enrich articles. Returns relevant ones."""
-    cutoff = datetime.now(timezone.utc) - timedelta(days=7)
+    now_utc = datetime.now(timezone.utc)
+    hard_cutoff = now_utc - timedelta(hours=36)  # reject articles older than 36 h
     relevant: list[dict] = []
     for article in articles:
-        # Skip articles published more than 7 days ago
+        # Skip articles published more than 36 hours ago (prevents stale RSS entries
+        # from appearing in today's digest after a service restart).
         pub_at = article.get("published_at", "")
         if pub_at:
             try:
                 dt = datetime.fromisoformat(pub_at)
                 if dt.tzinfo is None:
                     dt = dt.replace(tzinfo=timezone.utc)
-                if dt < cutoff:
+                if dt < hard_cutoff:
                     continue
             except Exception:
                 pass  # unparseable date — keep the article
@@ -353,31 +355,23 @@ def generate_digest_intro(articles: list[dict]) -> str:
     feed = "\n".join(lines)
 
     prompt = (
-        "Je bent een senior energie-analist voor Voltera, een Nederlands bedrijf "
-        "dat zonnepanelen, thuisbatterijen en warmtepompen installeert bij particulieren "
-        "en bedrijven. Voltera opereert volledig in de Nederlandse markt en richt zich "
-        "op de energietransitie en verduurzaming.\n\n"
-        "Analyseer de onderstaande nieuwsartikelen van de afgelopen 24 uur en schrijf "
-        "een uitgebreide Nederlandse managementsamenvatting van 200-250 woorden. "
-        "Structureer de samenvatting in deze volgorde:\n\n"
-        "1. **Nederlandse markt & beleid** — Wat verandert er in wet- en regelgeving, "
-        "subsidies, salderingsregeling, netcongestie of overheidsbeleid dat direct "
-        "invloed heeft op Voltera's klanten of installaties?\n\n"
-        "2. **Energieprijzen & marktbewegingen** — Hoe ontwikkelen stroom- en gasprijzen "
-        "zich? Wat is de impact op consumenten met zonnepanelen, thuisbatterijen of "
-        "warmtepompen?\n\n"
-        "3. **Technologie & producten** — Relevante ontwikkelingen op het gebied van "
-        "zonnepanelen, thuisbatterijen, warmtepompen, omvormers of energiebeheer "
-        "die kansen of risico's betekenen voor Voltera.\n\n"
-        "4. **Internationale signalen** — Internationale trends die de Nederlandse markt "
-        "op korte termijn kunnen beïnvloeden (prijzen, beschikbaarheid, beleid EU).\n\n"
-        "Sluit af met één zin: **Algemene toon voor de verduurzamingsbranche vandaag:** "
-        "gevolgd door een korte beoordeling.\n\n"
-        "Schrijf zakelijk, direct en actiegericht. "
-        "Gebruik GEEN markdown, GEEN asterisken (*) en GEEN hekjes (#). "
-        "Elk blok begint met de koptitel gevolgd door een dubbele punt, dan direct de lopende tekst. "
-        "Scheid de vier blokken met een lege regel. Geen opsommingstekens.\n\n"
-        f"Artikelen:\n{feed}"
+        "Je bent een commercieel strateeg voor Voltera, een Nederlands installatiebedrijf "
+        "dat zonnepanelen, thuisbatterijen en warmtepompen verkoopt en installeert bij "
+        "particulieren en MKB. Jouw enige doel: bepalen welk nieuws van vandaag de "
+        "verkoop van Voltera's producten beïnvloedt.\n\n"
+        "Schrijf een BEKNOPTE Nederlandse samenvatting van EXACT 4 alinea's. "
+        "Elke alinea is maximaal 2-3 zinnen. Totaal maximaal 150 woorden.\n\n"
+        "Alinea 1 — VERKOOPKANSEN: Welk nieuws creëert directe vraag naar zonnepanelen, "
+        "thuisbatterijen of warmtepompen? (subsidies, hoge energieprijzen, regelgeving)\n\n"
+        "Alinea 2 — MARKT & BELEID: Veranderingen in wet- of regelgeving, "
+        "salderingsregeling, netcongestie of overheidsbeleid die klanten activeren of remmen.\n\n"
+        "Alinea 3 — TECHNOLOGIE: Nieuwe producten, prijsdalingen of innovaties waarmee "
+        "Voltera een beter of goedkoper aanbod kan doen.\n\n"
+        "Alinea 4 — ACTIESIGNAAL: Één concrete zin — wat moet Voltera's salesteam "
+        "VANDAAG doen of benadrukken richting klanten?\n\n"
+        "Schrijf zakelijk en direct. Geen opsommingstekens, geen markdown, geen asterisken. "
+        "Begin elke alinea met de cursieve koptitel gevolgd door een dubbele punt.\n\n"
+        f"Artikelen van de afgelopen 24 uur:\n{feed}"
     )
 
     try:
@@ -392,7 +386,7 @@ def generate_digest_intro(articles: list[dict]) -> str:
             json={
                 "model": "google/gemini-2.0-flash-lite-001",
                 "messages": [{"role": "user", "content": prompt}],
-                "max_tokens": 600,
+                "max_tokens": 350,
                 "temperature": 0.4,
             },
             timeout=30,
